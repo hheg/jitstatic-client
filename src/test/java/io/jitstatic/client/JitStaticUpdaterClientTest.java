@@ -47,8 +47,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
-import io.jitstatic.client.JitStaticUpdaterClient.JitStaticUpdaterClientBuilder;
-
 public class JitStaticUpdaterClientTest {
 
     @Rule
@@ -75,7 +73,7 @@ public class JitStaticUpdaterClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         Entity entity = client.getKey("key", null, "application/test", entityFactory);
@@ -104,7 +102,7 @@ public class JitStaticUpdaterClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         Entity entity = client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321", "application/test",
@@ -139,7 +137,7 @@ public class JitStaticUpdaterClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         client.getKey("key", null, "application/test", entityFactory);
@@ -167,7 +165,7 @@ public class JitStaticUpdaterClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321", "application/test", entityFactory);

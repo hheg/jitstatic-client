@@ -13,4 +13,8 @@ public interface JitStaticCreatorClient extends AutoCloseable {
     <T extends BaseEntity> T createKey(InputStream data, CommitData commitData, MetaData metaData,
             TriFunction<InputStream, String, String, T> entityFactory) throws ClientProtocolException, IOException, APIException;
 
+    static JitStaticCreatorClientBuilder create() {
+        return new JitStaticCreatorClientBuilder();
+    }
+
 }

@@ -50,7 +50,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
-import io.jitstatic.client.JitStaticCreatorClientImpl.JitStaticCreatorClientBuilder;
 import io.jitstatic.client.MetaData.User;
 
 public class JitStaticCreatorClientTest {
@@ -79,7 +78,7 @@ public class JitStaticCreatorClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticCreatorClientImpl client = JitStaticCreatorClientBuilder.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        JitStaticCreatorClientImpl client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
         Set<User> users = new HashSet<>();
         users.add(new User("user", "pass"));
@@ -115,7 +114,7 @@ public class JitStaticCreatorClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticCreatorClientImpl client = JitStaticCreatorClientBuilder.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        JitStaticCreatorClientImpl client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
         Set<User> users = new HashSet<>();
         users.add(new User("user", "pass"));
