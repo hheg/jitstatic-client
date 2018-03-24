@@ -33,7 +33,7 @@ public class ModifyDataEntityTest {
     @Test
     public void testModifyDataEntityTest() throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] {1});
-        KeyEntity data = new ModifyKeyEntity(bis, "msg", "usr", "mail", "application/json");
+        KeyEntity data = new ModifyKeyEntity(bis, "msg", "usr", "mail");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals("{\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"data\":\"AQ==\"}",baos.toString("UTF-8"));

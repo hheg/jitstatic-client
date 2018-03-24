@@ -61,7 +61,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
     private static final String UTF_8 = "utf-8";
     private static final String APPLICATION_JSON = "application/json";
     private static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
-            new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
+            new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"), new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
             new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"),
             new BasicHeader(HttpHeaders.USER_AGENT, String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(),
                     ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
@@ -136,57 +136,55 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         return context;
     }
 
-    /* (non-Javadoc)
-     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#modifyKey(byte[], io.jitstatic.client.CommitData, java.lang.String, java.lang.String, io.jitstatic.client.TriFunction)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#modifyKey(byte[],
+     * io.jitstatic.client.CommitData, java.lang.String)
      */
     @Override
-    public <T extends BaseEntity> T modifyKey(final byte[] data, final CommitData commitData, final String version,
-            final String contentType, final TriFunction<InputStream, String, String, T> entityFactory)
+    public String modifyKey(final byte[] data, final CommitData commitData, final String version)
             throws URISyntaxException, ClientProtocolException, IOException, APIException {
-        return modifyKey(new ByteArrayInputStream(data), commitData, version, contentType, entityFactory);
+        return modifyKey(new ByteArrayInputStream(data), commitData, version);
     }
 
-    /* (non-Javadoc)
-     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#modifyKey(java.io.InputStream, io.jitstatic.client.CommitData, java.lang.String, java.lang.String, io.jitstatic.client.TriFunction)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#modifyKey(java.io.
+     * InputStream, io.jitstatic.client.CommitData, java.lang.String)
      */
     @Override
-    public <T extends BaseEntity> T modifyKey(final InputStream data, final CommitData commitData, final String version,
-            final String contentType, final TriFunction<InputStream, String, String, T> entityFactory)
+    public String modifyKey(final InputStream data, final CommitData commitData, final String version)
             throws URISyntaxException, ClientProtocolException, IOException, APIException {
         Objects.requireNonNull(commitData, "commitData cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(version, "version cannot be null");
-        Objects.requireNonNull(contentType,"contentType cannot be null");
-        Objects.requireNonNull(entityFactory, "enityFactory cannot be null");
 
         final URIBuilder uriBuilder = new URIBuilder(baseURL.resolve(commitData.getKey()));
         addRefParameter(commitData.getBranch(), uriBuilder);
-        final URI uri = uriBuilder.build();        
+        final URI uri = uriBuilder.build();
         final HttpPut putRequest = new HttpPut(uri);
         putRequest.setHeaders(HEADERS);
         putRequest.addHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
         putRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         putRequest.addHeader(HttpHeaders.IF_MATCH, checkVersion(version));
 
-        final KeyEntity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail(),
-                contentType);
+        final KeyEntity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail());
         putRequest.setEntity(modify);
         try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
             checkPUTStatusCode(uri, putRequest, statusLine);
-            final String etagValue = getSingleHeader(httpResponse, HttpHeaders.ETAG);
-            try (final InputStream content = modify.getContent()) {
-                return entityFactory.apply(content, etagValue, contentType);
-            }
+            return getSingleHeader(httpResponse, HttpHeaders.ETAG);
         }
     }
 
     private String checkVersion(String version) {
-        if(!version.startsWith("\"")) {
-            version = "\""+version;
+        if (!version.startsWith("\"")) {
+            version = "\"" + version;
         }
-        if(!version.endsWith("\"")) {
-            version +="\"";
+        if (!version.endsWith("\"")) {
+            version += "\"";
         }
         return version;
     }
@@ -207,25 +205,30 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         }
     }
 
-    /* (non-Javadoc)
-     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#getKey(java.lang.String, java.lang.String, io.jitstatic.client.TriFunction)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * io.jitstatic.client.JitStaticUpdaterClientInterface#getKey(java.lang.String,
+     * io.jitstatic.client.TriFunction)
      */
     @Override
-    public <T extends BaseEntity> T getKey(final String key, final String contenttype,
-            final TriFunction<InputStream, String, String, T> entityFactory)
+    public <T> T getKey(final String key, final TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, URISyntaxException, IOException, APIException {
-        return getKey(key, null, contenttype, entityFactory);
+        return getKey(key, null, entityFactory);
     }
 
-    /* (non-Javadoc)
-     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#getKey(java.lang.String, java.lang.String, java.lang.String, io.jitstatic.client.TriFunction)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * io.jitstatic.client.JitStaticUpdaterClientInterface#getKey(java.lang.String,
+     * java.lang.String, io.jitstatic.client.TriFunction)
      */
     @Override
-    public <T extends BaseEntity> T getKey(final String key, final String ref, final String contentType,
-            final TriFunction<InputStream, String, String, T> entityFactory)
+    public <T> T getKey(final String key, final String ref, final TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException, APIException {
         Objects.requireNonNull(key, "key cannot be null");
-        Objects.requireNonNull(contentType, "contentTpye cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
 
         final URIBuilder uriBuilder = new URIBuilder(baseURL.resolve(key));
@@ -233,13 +236,11 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         final URI url = uriBuilder.build();
         final HttpGet getRequest = new HttpGet(url);
         getRequest.setHeaders(HEADERS);
-        if (!APPLICATION_JSON.equals(contentType)) {
-            getRequest.addHeader(HttpHeaders.ACCEPT, contentType);
-        }
         try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
             checkGETresponse(url, getRequest, statusLine);
             final String etagValue = getSingleHeader(httpResponse, HttpHeaders.ETAG);
+            final String contentType = getSingleHeader(httpResponse, HttpHeaders.CONTENT_TYPE);
             try (final InputStream content = httpResponse.getEntity().getContent()) {
                 return entityFactory.apply(content, etagValue, contentType);
             }

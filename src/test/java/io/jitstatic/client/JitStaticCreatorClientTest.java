@@ -135,17 +135,28 @@ public class JitStaticCreatorClientTest {
         return new Entity(version, content, b);
     };
 
-    private static class Entity extends BaseEntity {
+    private static class Entity {
 
         private final byte[] data;
+        private final String contentType;
+        private final String tag;
 
         public Entity(String tag, String contentType, byte[] data) {
-            super(tag, contentType);
+            this.tag = tag;
+            this.contentType = contentType;
             this.data = data;
         }
 
         public byte[] getData() {
             return data;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public String getTag() {
+            return tag;
         }
     }
 }

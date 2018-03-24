@@ -56,7 +56,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
     private static final String APPLICATION_JSON = "application/json";
     private static final String JITSTATIC_ENDPOINT = "storage/";
     private static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
-            new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
+            new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"), new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
             new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"),
             new BasicHeader(HttpHeaders.USER_AGENT, String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(),
                     ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
@@ -116,20 +116,28 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         return context;
     }
 
-    /* (non-Javadoc)
-     * @see io.jitstatic.client.JitStaticCreatorClientInterface#createKey(byte[], io.jitstatic.client.CommitData, io.jitstatic.client.MetaData, io.jitstatic.client.TriFunction)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see io.jitstatic.client.JitStaticCreatorClientInterface#createKey(byte[],
+     * io.jitstatic.client.CommitData, io.jitstatic.client.MetaData,
+     * io.jitstatic.client.TriFunction)
      */
     @Override
-    public <T extends BaseEntity> T createKey(final byte[] data, final CommitData commitData, final MetaData metaData,
+    public <T> T createKey(final byte[] data, final CommitData commitData, final MetaData metaData,
             final TriFunction<InputStream, String, String, T> entityFactory) throws ClientProtocolException, IOException, APIException {
         return createKey(new ByteArrayInputStream(data), commitData, metaData, entityFactory);
     }
 
-    /* (non-Javadoc)
-     * @see io.jitstatic.client.JitStaticCreatorClientInterface#createKey(java.io.InputStream, io.jitstatic.client.CommitData, io.jitstatic.client.MetaData, io.jitstatic.client.TriFunction)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see io.jitstatic.client.JitStaticCreatorClientInterface#createKey(java.io.
+     * InputStream, io.jitstatic.client.CommitData, io.jitstatic.client.MetaData,
+     * io.jitstatic.client.TriFunction)
      */
     @Override
-    public <T extends BaseEntity> T createKey(final InputStream data, final CommitData commitData, final MetaData metaData,
+    public <T> T createKey(final InputStream data, final CommitData commitData, final MetaData metaData,
             final TriFunction<InputStream, String, String, T> entityFactory) throws ClientProtocolException, IOException, APIException {
 
         final HttpPost postRequest = new HttpPost(baseURL);

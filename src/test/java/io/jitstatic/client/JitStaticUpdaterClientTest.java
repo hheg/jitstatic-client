@@ -76,7 +76,7 @@ public class JitStaticUpdaterClientTest {
         JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
-        Entity entity = client.getKey("key", null, "application/test", entityFactory);
+        Entity entity = client.getKey("key", null, entityFactory);
         assertNotNull(entity);
         assertEquals("application/test", entity.getContentType());
         assertEquals("\"1234\"", entity.getTag());
@@ -105,13 +105,10 @@ public class JitStaticUpdaterClientTest {
         JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
-        Entity entity = client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321", "application/test",
-                entityFactory);
+        String entity = client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321");
 
         assertNotNull(entity);
-        assertEquals("application/test", entity.getContentType());
-        assertEquals("\"1234\"", entity.getTag());
-        assertArrayEquals(new byte[] { 0 }, entity.getData());
+        assertEquals("\"1234\"", entity);
     }
 
     @Test
@@ -140,7 +137,7 @@ public class JitStaticUpdaterClientTest {
         JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
-        client.getKey("key", null, "application/test", entityFactory);
+        client.getKey("key", null, entityFactory);
     }
 
     @Test
@@ -168,7 +165,7 @@ public class JitStaticUpdaterClientTest {
         JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
-        client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321", "application/test", entityFactory);
+        client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321");
     }
 
     private TriFunction<InputStream, String, String, Entity> entityFactory = (is, version, content) -> {
@@ -181,17 +178,28 @@ public class JitStaticUpdaterClientTest {
         return new Entity(version, content, b);
     };
 
-    private static class Entity extends BaseEntity {
+    private static class Entity {
 
         private final byte[] data;
+        private final String contentType;
+        private final String tag;
 
         public Entity(String tag, String contentType, byte[] data) {
-            super(tag, contentType);
+            this.contentType = contentType;
             this.data = data;
+            this.tag = tag;
         }
 
         public byte[] getData() {
             return data;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public String getTag() {
+            return tag;
         }
     }
 
