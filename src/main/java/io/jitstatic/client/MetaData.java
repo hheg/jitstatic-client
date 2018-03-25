@@ -25,7 +25,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-class MetaData {
+public class MetaData {
 
     private final Set<User> users;
     private final String contentType;

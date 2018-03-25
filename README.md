@@ -23,7 +23,7 @@ JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppCon
 	.setHost("localhost").setPort(80).setUser("user").setPassword("pass").setScheme("http")
 	.setHttpClientBuilder(clientBuilderMock).build();
 	
-Enity entity = client.getKey("key", "application/json", entityFactory);
+Enity entity = client.getKey("key", entityFactory);
 ```
 
 #### To modify a key
@@ -32,6 +32,8 @@ JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppCon
 	.setHost("localhost").setPort(80).setUser("user").setPassword("pass").setScheme("http")
 	.setHttpClientBuilder(clientBuilderMock).build();
 
-Enity entity = client.getKey("key", "application/json", entityFactory);
-Entity modifiedEntity = client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"),entity, entityFactory);
+Enity entity = client.getKey("key", entityFactory);
+String version = entity.getTag();
+String contentType = entity.getContentType();
+Entity modifiedEntity = client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), version, contentType, entityFactory);
 ```
