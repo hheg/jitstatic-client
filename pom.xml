@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.jitstatic</groupId>
 	<artifactId>jitstatic-client</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<name>JitStatic API Client</name>
 	<description>This is the API client for the JitStatic server</description>
 	<url>https://github.com/hheg/jitstatic-client</url>
@@ -287,6 +287,18 @@
 							</execution>
 						</executions>
 					</plugin>
+					<plugin>
+      					<groupId>org.apache.maven.plugins</groupId>
+      					<artifactId>maven-javadoc-plugin</artifactId>      				
+      					<executions>
+        					<execution>
+          						<id>attach-javadocs</id>
+          						<goals>
+            						<goal>jar</goal>
+          						</goals>
+        					</execution>
+      					</executions>
+    				</plugin>
 				</plugins>
 			</build>
 		</profile>
