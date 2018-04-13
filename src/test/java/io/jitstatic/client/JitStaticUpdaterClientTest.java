@@ -114,7 +114,7 @@ public class JitStaticUpdaterClientTest {
     @Test
     public void testJitStaticUpdaterClientGetKeyNotFound() throws ClientProtocolException, URISyntaxException, IOException, APIException {
         ex.expect(APIException.class);
-        ex.expectMessage("http://localhost:80/app/key failed with: 404 NOT FOUND");
+        ex.expectMessage("http://localhost:80/app/storage/key failed with: 404 NOT FOUND");
         final byte[] data = new byte[] { 1 };
         HttpClientBuilder clientBuilderMock = Mockito.mock(HttpClientBuilder.class);
         CloseableHttpClient clientMock = Mockito.mock(CloseableHttpClient.class);
@@ -144,7 +144,7 @@ public class JitStaticUpdaterClientTest {
     public void testJitStaticUpdaterClientPutKeyError()
             throws UnsupportedOperationException, IOException, URISyntaxException, APIException {
         ex.expect(APIException.class);
-        ex.expectMessage("http://localhost:80/app/key?ref=refs%2Fheads%2Fmaster failed with: 412 PRECONDITION FAILED");
+        ex.expectMessage("http://localhost:80/app/storage/key?ref=refs%2Fheads%2Fmaster failed with: 412 PRECONDITION FAILED");
         final byte[] data = new byte[] { 1 };
         HttpClientBuilder clientBuilderMock = Mockito.mock(HttpClientBuilder.class);
         CloseableHttpClient clientMock = Mockito.mock(CloseableHttpClient.class);
