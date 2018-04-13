@@ -60,20 +60,20 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
     static final String HTTP = "http";
     private static final String UTF_8 = "utf-8";
     private static final String APPLICATION_JSON = "application/json";
+    private static final String JITSTATIC_ENDPOINT = "storage/";
     private static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
             new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"), new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
-            new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"),
-            new BasicHeader(HttpHeaders.USER_AGENT, String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(),
-                    ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
+            new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"), new BasicHeader(HttpHeaders.USER_AGENT,
+                    String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(), ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
 
     private static final String REF = "ref";
     private final CloseableHttpClient client;
     private final HttpClientContext context;
     private final URI baseURL;
 
-    JitStaticUpdaterClientImpl(final String host, final int port, final String scheme, final String appContext, final String user,
-            final String password, final CacheConfig cacheConfig, final RequestConfig requestConfig,
-            final HttpClientBuilder httpClientBuilder, final File cacheDir) throws URISyntaxException {
+    JitStaticUpdaterClientImpl(final String host, final int port, final String scheme, final String appContext, final String user, final String password,
+            final CacheConfig cacheConfig, final RequestConfig requestConfig, final HttpClientBuilder httpClientBuilder, final File cacheDir)
+            throws URISyntaxException {
         Objects.requireNonNull(host, "host cannot be null");
         Objects.requireNonNull(appContext, "appContext cannot be null");
         Objects.requireNonNull(httpClientBuilder, "httpClientBuilder cannot be null");
@@ -96,8 +96,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         HttpCacheContext cacheContext = null;
         if (cacheConfig != null) {
             if (!(httpClientBuilder instanceof CachingHttpClientBuilder)) {
-                throw new IllegalArgumentException(
-                        "A CacheConfig is specified but HttpClientBuilder is not an instance of CachingHttpClientBuilder");
+                throw new IllegalArgumentException("A CacheConfig is specified but HttpClientBuilder is not an instance of CachingHttpClientBuilder");
             }
             final CachingHttpClientBuilder chcb = ((CachingHttpClientBuilder) httpClientBuilder);
             chcb.setCacheConfig(cacheConfig);
@@ -109,8 +108,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
 
         if (user != null) {
             final CredentialsProvider credsProvider = new BasicCredentialsProvider();
-            credsProvider.setCredentials(new AuthScope(target.getHostName(), target.getPort()),
-                    new UsernamePasswordCredentials(user, password));
+            credsProvider.setCredentials(new AuthScope(target.getHostName(), target.getPort()), new UsernamePasswordCredentials(user, password));
             httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
             this.context = getHostContext(target, credsProvider, cacheContext);
         } else {
@@ -118,11 +116,10 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         }
         client = httpClientBuilder.build();
 
-        this.baseURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext);
+        this.baseURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_ENDPOINT);
     }
 
-    private HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider,
-            final HttpCacheContext cacheContext) {
+    private HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider, final HttpCacheContext cacheContext) {
         final AuthCache authCache = new BasicAuthCache();
         authCache.put(target, new BasicScheme());
         HttpClientContext context;
