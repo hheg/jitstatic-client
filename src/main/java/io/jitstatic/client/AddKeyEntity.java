@@ -23,66 +23,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
-import org.apache.http.message.BasicHeader;
-
-import io.jitstatic.client.MetaData.User;
 
 class AddKeyEntity extends KeyEntity {
 
     private static final byte[] KEY = getBytes("key");
     private static final byte[] BRANCH = getBytes("branch");
-    private static final byte[] METADATA = getBytes("metaData");
-    private static final byte[] USERS = getBytes("users");
-    private static final byte[] PASSWORD = getBytes("password");
-    private static final byte[] CONTENTTYPE = getBytes("contentType");
-    private static final byte[] LEFTSQBRACKET = getBytes("[");
-    private static final byte[] RIGHTSQBRACKET = getBytes("]");
-
     private final CommitData commitData;
-    private final MetaData medaData;
-
-    private final AtomicBoolean bool = new AtomicBoolean(false);
+   
     private final InputStream data;
 
     public AddKeyEntity(final InputStream is, final CommitData commitData, final MetaData metaData) {
-        this.medaData = metaData;
+        super(metaData);
         this.commitData = commitData;
         this.data = is;
-    }
-
-    @Override
-    public boolean isRepeatable() {
-        return false;
-    }
-
-    @Override
-    public boolean isChunked() {
-        return false;
-    }
-
-    @Override
-    public long getContentLength() {
-        return -1;
-    }
-
-    @Override
-    public Header getContentType() {
-        return new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-    }
-
-    @Override
-    public Header getContentEncoding() {
-        return new BasicHeader(HttpHeaders.CONTENT_ENCODING, "UTF-8");
-    }
-
-    @Override
-    public InputStream getContent() throws IOException, UnsupportedOperationException {
-        throw new UnsupportedOperationException("getContent is unsupported");
     }
 
     @Override
@@ -107,47 +60,6 @@ class AddKeyEntity extends KeyEntity {
         } finally {
             bool.set(false);
         }
-    }
-
-    private void writeMetaDataField(final OutputStream o) throws IOException {
-        o.write(DOUBLEQUOTE);
-        o.write(METADATA);
-        o.write(DOUBLEQUOTE);
-        o.write(COLON);
-        o.write(LEFTBRACKET);
-        o.write(DOUBLEQUOTE);
-        o.write(USERS);
-        o.write(DOUBLEQUOTE);
-        o.write(COLON);
-        o.write(LEFTSQBRACKET);
-        writeUsers(o);
-        o.write(RIGHTSQBRACKET);
-        o.write(COMMA);
-        writeField(CONTENTTYPE,medaData.getContentType(),o);
-        o.write(RIGHTBRACKET);
-    }
-
-    private void writeUsers(final OutputStream o) throws IOException {
-        final Set<User> users = medaData.getUsers();
-        byte[] b = new byte[0];
-        for (User user : users) {
-            o.write(b);
-            o.write(LEFTBRACKET);
-            writeField(USER, user.getUser(), o);
-            o.write(COMMA);
-            writeField(PASSWORD, user.getPassword(), o);
-            o.write(RIGHTBRACKET);
-            b = COMMA;
-        }
-    }
-
-    @Override
-    public boolean isStreaming() {
-        return bool.get();
-    }
-
-    @Override
-    public void consumeContent() throws IOException {
     }
 
     @Override

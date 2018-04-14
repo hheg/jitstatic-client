@@ -40,6 +40,14 @@ public interface JitStaticUpdaterClient extends AutoCloseable {
     <T> T getKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException, APIException;
 
+    <T> T getKey(String key, TriFunction<InputStream, String, String, T> entityFactory, String currentVersion)
+            throws ClientProtocolException, URISyntaxException, IOException, APIException;
+
+    <T> T getKey(String key, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException, APIException;
+    
+    void close();
+
     static JitStaticUpdaterClientBuilder create() {
         return new JitStaticUpdaterClientBuilder();
     }

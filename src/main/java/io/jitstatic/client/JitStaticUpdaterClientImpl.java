@@ -66,7 +66,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
             new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"), new BasicHeader(HttpHeaders.USER_AGENT,
                     String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(), ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
 
-    private static final String REF = "ref";
+    static final String REF = "ref";
     private final CloseableHttpClient client;
     private final HttpClientContext context;
     private final URI baseURL;
@@ -133,24 +133,12 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         return context;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#modifyKey(byte[],
-     * io.jitstatic.client.CommitData, java.lang.String)
-     */
     @Override
     public String modifyKey(final byte[] data, final CommitData commitData, final String version)
             throws URISyntaxException, ClientProtocolException, IOException, APIException {
         return modifyKey(new ByteArrayInputStream(data), commitData, version);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see io.jitstatic.client.JitStaticUpdaterClientInterface#modifyKey(java.io.
-     * InputStream, io.jitstatic.client.CommitData, java.lang.String)
-     */
     @Override
     public String modifyKey(final InputStream data, final CommitData commitData, final String version)
             throws URISyntaxException, ClientProtocolException, IOException, APIException {
@@ -159,108 +147,68 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         Objects.requireNonNull(version, "version cannot be null");
 
         final URIBuilder uriBuilder = new URIBuilder(baseURL.resolve(commitData.getKey()));
-        addRefParameter(commitData.getBranch(), uriBuilder);
+        APIHelper.addRefParameter(commitData.getBranch(), uriBuilder);
         final URI uri = uriBuilder.build();
         final HttpPut putRequest = new HttpPut(uri);
         putRequest.setHeaders(HEADERS);
         putRequest.addHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
         putRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
-        putRequest.addHeader(HttpHeaders.IF_MATCH, checkVersion(version));
+        putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
 
-        final KeyEntity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail());
+        final Entity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail());
         putRequest.setEntity(modify);
         try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
-            checkPUTStatusCode(uri, putRequest, statusLine);
-            return getSingleHeader(httpResponse, HttpHeaders.ETAG);
+            APIHelper.checkPUTStatusCode(uri, putRequest, statusLine);
+            return APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
         }
     }
 
-    private String checkVersion(String version) {
-        if (!version.startsWith("\"")) {
-            version = "\"" + version;
-        }
-        if (!version.endsWith("\"")) {
-            version += "\"";
-        }
-        return version;
-    }
-
-    private void addRefParameter(final String ref, final URIBuilder uriBuilder) {
-        if (ref != null) {
-            uriBuilder.addParameter(REF, ref);
-        }
-    }
-
-    private void checkPUTStatusCode(final URI uri, final HttpPut putRequest, final StatusLine statusLine) throws APIException {
-        switch (statusLine.getStatusCode()) {
-        case HttpStatus.SC_OK:
-        case HttpStatus.SC_ACCEPTED:
-            break;
-        default:
-            throw new APIException(statusLine, uri.toString(), putRequest.getMethod());
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * io.jitstatic.client.JitStaticUpdaterClientInterface#getKey(java.lang.String,
-     * io.jitstatic.client.TriFunction)
-     */
     @Override
     public <T> T getKey(final String key, final TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, URISyntaxException, IOException, APIException {
         return getKey(key, null, entityFactory);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * io.jitstatic.client.JitStaticUpdaterClientInterface#getKey(java.lang.String,
-     * java.lang.String, io.jitstatic.client.TriFunction)
-     */
+    @Override
+    public <T> T getKey(final String key, final TriFunction<InputStream, String, String, T> entityFactory, final String currentVersion)
+            throws ClientProtocolException, URISyntaxException, IOException, APIException {
+        return getKey(key, null, currentVersion, entityFactory);
+    }
+    
     @Override
     public <T> T getKey(final String key, final String ref, final TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException, APIException {
+        return getKey(key, ref, null, entityFactory);
+    }
+
+    @Override
+    public <T> T getKey(final String key, final String ref, final String currentVersion, final TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException, APIException {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
 
         final URIBuilder uriBuilder = new URIBuilder(baseURL.resolve(key));
-        addRefParameter(Utils.checkRef(ref), uriBuilder);
+        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
         final URI url = uriBuilder.build();
         final HttpGet getRequest = new HttpGet(url);
         getRequest.setHeaders(HEADERS);
+        if (currentVersion != null) {
+            getRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.escapeVersion(currentVersion));
+        }
         try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
-            checkGETresponse(url, getRequest, statusLine);
-            final String etagValue = getSingleHeader(httpResponse, HttpHeaders.ETAG);
-            final String contentType = getSingleHeader(httpResponse, HttpHeaders.CONTENT_TYPE);
-            try (final InputStream content = httpResponse.getEntity().getContent()) {
-                return entityFactory.apply(content, etagValue, contentType);
+            APIHelper.checkGETresponse(url, getRequest, statusLine);
+            final String etagValue = APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
+            final String contentType = APIHelper.getSingleHeader(httpResponse, HttpHeaders.CONTENT_TYPE);
+            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+                return entityFactory.apply(null, etagValue, contentType);
+            } else {
+                try (final InputStream content = httpResponse.getEntity().getContent()) {
+                    return entityFactory.apply(content, etagValue, contentType);
+                }
             }
         }
-    }
-
-    private void checkGETresponse(final URI url, final HttpGet getRequest, final StatusLine statusLine) throws APIException {
-        switch (statusLine.getStatusCode()) {
-        case HttpStatus.SC_OK:
-        case HttpStatus.SC_ACCEPTED:
-        case HttpStatus.SC_NOT_MODIFIED:
-            break;
-        default:
-            throw new APIException(statusLine, url.toString(), getRequest.getMethod());
-        }
-    }
-
-    private String getSingleHeader(final CloseableHttpResponse httpResponse, final String headerTag) {
-        final Header[] headers = httpResponse.getHeaders(headerTag);
-        if (headers.length != 1) {
-            return null;
-        }
-        return headers[0].getValue();
     }
 
     @Override
