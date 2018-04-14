@@ -25,25 +25,46 @@ import static org.junit.Assert.assertEquals;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
+
+import io.jitstatic.client.MetaData.User;
 
 public class ModifyDataEntityTest {
 
     @Test
     public void testModifyDataEntityTest() throws IOException {
-        ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] {1});
+        ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] { 1 });
         Entity data = new ModifyKeyEntity(bis, "msg", "usr", "mail");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
-        assertEquals("{\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"data\":\"AQ==\"}",baos.toString("UTF-8"));
+        assertEquals("{\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"data\":\"AQ==\"}", baos.toString("UTF-8"));
     }
-    
+
     @Test
     public void testModifyUserKey() throws IOException {
         Entity data = new ModifyUserKeyEntity(new ModifyUserKeyData(new MetaData("application/json"), "msg", "mail", "ui"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        data.writeTo(baos);        
-        assertEquals("{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[],\"contentType\":\"application/json\"}}", baos.toString("UTF-8"));
+        data.writeTo(baos);
+        assertEquals(
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false}}",
+                baos.toString("UTF-8"));
+    }
+
+    @Test
+    public void testModifyMetaKey() throws IOException {
+        Set<User> users = new HashSet<>();
+        users.add(new User("u", "p"));
+        List<HeaderPair> list = Arrays.asList(new HeaderPair[] { HeaderPair.of("h", "v") });
+        Entity data = new ModifyUserKeyEntity(new ModifyUserKeyData(new MetaData(users, "application/json", list), "msg", "mail", "ui"));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        data.writeTo(baos);
+        assertEquals(
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}]}}",
+                baos.toString());
     }
 }
