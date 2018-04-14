@@ -44,7 +44,7 @@ public class AddKeyEntityTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"key\":\"key\",\"branch\":\"refs/heads/master\",\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\"},\"data\":\"AQ==\"}",
+                "{\"key\":\"key\",\"branch\":\"refs/heads/master\",\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false},\"data\":\"AQ==\"}",
                 baos.toString("UTF-8"));
     }
 
@@ -59,7 +59,7 @@ public class AddKeyEntityTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"key\":\"key\",\"branch\":\"refs/heads/master\",\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user2\",\"password\":\"pass\"},{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\"},\"data\":\"AQ==\"}",
+                "{\"key\":\"key\",\"branch\":\"refs/heads/master\",\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user2\",\"password\":\"pass\"},{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false},\"data\":\"AQ==\"}",
                 baos.toString("UTF-8"));
     }
 }
