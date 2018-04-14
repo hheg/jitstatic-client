@@ -37,3 +37,16 @@ String version = entity.getTag();
 String contentType = entity.getContentType();
 Entity modifiedEntity = client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), version, contentType, entityFactory);
 ```
+
+#### To modify a metadatakey
+```java
+ JitStaticCreatorClient client = JitStaticCreatorClientBuilder.create().setAppContext("/app/")
+ 	.setHost("localhost").setPort(80).setUser("user").setPassword("pass").setScheme("http")
+ 	.setHttpClientBuilder(clientBuilderMock).build();
+ 	
+Entity entity = client.getMetaKey("key", null, entityFactory);
+User u = new User("user", "pass");
+Set<User> users = new HashSet<>();
+users.add(u);
+String newVersion = client.modifyMetaKey("key", null, entity.getTag(), new ModifyUserKeyData(new MetaData(users, "application/test2"), "msg", "mail", "info"));
+```

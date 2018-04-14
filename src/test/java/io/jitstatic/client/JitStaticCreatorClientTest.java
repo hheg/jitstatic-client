@@ -144,7 +144,7 @@ public class JitStaticCreatorClientTest {
 
         try (JitStaticCreatorClientImpl client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
                 .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();) {
-            Entity entity = client.getUserKey("key", null, entityFactory);
+            Entity entity = client.getMetaKey("key", null, entityFactory);
             assertNotNull(entity);
             assertEquals("application/test", entity.getContentType());
             assertEquals("\"1234\"", entity.getTag());
@@ -152,7 +152,7 @@ public class JitStaticCreatorClientTest {
             User u = new User("user", "pass");
             Set<User> users = new HashSet<>();
             users.add(u);
-            String newVersion = client.modifyUserKey("key", null, entity.getTag(),
+            String newVersion = client.modifyMetaKey("key", null, entity.getTag(),
                     new ModifyUserKeyData(new MetaData(users, "application/test2"), "msg", "mail", "info"));
             assertNotNull(newVersion);
             assertNotEquals(entity.getTag(), newVersion);

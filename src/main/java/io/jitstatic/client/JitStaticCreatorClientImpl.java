@@ -168,13 +168,13 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
     }
 
     @Override
-    public <T> T getUserKey(final String key, final String ref, final TriFunction<InputStream, String, String, T> entityFactory)
+    public <T> T getMetaKey(final String key, final String ref, final TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, URISyntaxException, IOException {
-        return getUserKey(key, ref, null, entityFactory);
+        return getMetaKey(key, ref, null, entityFactory);
     }
 
     @Override
-    public <T> T getUserKey(final String key, final String ref, final String currentVersion, final TriFunction<InputStream, String, String, T> entityFactory)
+    public <T> T getMetaKey(final String key, final String ref, final String currentVersion, final TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
@@ -203,7 +203,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
     }
 
     @Override
-    public String modifyUserKey(final String key, final String ref, final String version, final ModifyUserKeyData data)
+    public String modifyMetaKey(final String key, final String ref, final String version, final ModifyUserKeyData data)
             throws ClientProtocolException, IOException, URISyntaxException {
         Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(data, "data cannot be null");

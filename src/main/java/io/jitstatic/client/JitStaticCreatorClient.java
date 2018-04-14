@@ -34,12 +34,12 @@ public interface JitStaticCreatorClient extends AutoCloseable {
     <T> T createKey(InputStream data, CommitData commitData, MetaData metaData, TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, IOException, APIException;
     
-    <T> T getUserKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
+    <T> T getMetaKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, URISyntaxException, IOException;
     
-    <T> T getUserKey(String key, String ref, String version, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T getMetaKey(String key, String ref, String version, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException;
     
-    String modifyUserKey(String key, String ref, String version, ModifyUserKeyData data) throws ClientProtocolException, IOException, URISyntaxException;
+    String modifyMetaKey(String key, String ref, String version, ModifyUserKeyData data) throws ClientProtocolException, IOException, URISyntaxException;
         
     void close();
 
