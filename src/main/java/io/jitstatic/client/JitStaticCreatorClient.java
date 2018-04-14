@@ -22,6 +22,7 @@ package io.jitstatic.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 
 import org.apache.http.client.ClientProtocolException;
 
@@ -32,6 +33,15 @@ public interface JitStaticCreatorClient extends AutoCloseable {
 
     <T> T createKey(InputStream data, CommitData commitData, MetaData metaData, TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, IOException, APIException;
+    
+    <T> T getUserKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
+            throws ClientProtocolException, URISyntaxException, IOException;
+    
+    <T> T getUserKey(String key, String ref, String version, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException;
+    
+    String modifyUserKey(String key, String ref, String version, ModifyUserKeyData data) throws ClientProtocolException, IOException, URISyntaxException;
+        
+    void close();
 
     static JitStaticCreatorClientBuilder create() {
         return new JitStaticCreatorClientBuilder();

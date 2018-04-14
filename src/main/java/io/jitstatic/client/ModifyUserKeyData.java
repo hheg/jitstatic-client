@@ -2,7 +2,7 @@ package io.jitstatic.client;
 
 /*-
  * #%L
- * jitstatic
+ * jitstatic client
  * %%
  * Copyright (C) 2017 - 2018 H.Hegardt
  * %%
@@ -22,43 +22,33 @@ package io.jitstatic.client;
 
 import java.util.Objects;
 
-public class CommitData {
+public class ModifyUserKeyData {
 
-    private final String branch;
-    private final String key;
     private final String message;
-    private final String user;
+    private final MetaData data;
     private final String userMail;
+    private final String userInfo;
 
-    public CommitData(final String key, final String message, final String userInfo, final String userMail) {
-        this(key, null, message, userInfo, userMail);
-    }
-
-    public CommitData(final String key, final String branch, final String message, final String userInfo, final String userMail) {
-        this.branch = Utils.checkBranch(branch);
-        this.key = Objects.requireNonNull(key);
+    public ModifyUserKeyData(final MetaData data, final String message, final String userMail, final String userInfo) {
+        this.data = Objects.requireNonNull(data);
         this.message = Objects.requireNonNull(message);
-        this.user = Objects.requireNonNull(userInfo);
         this.userMail = Objects.requireNonNull(userMail);
+        this.userInfo = Objects.requireNonNull(userInfo);
     }
-
-    public final String getBranch() {
-        return branch;
-    }
-
-    public final String getKey() {
-        return key;
-    }
-
-    public final String getMessage() {
+    
+    public String getMessage() {
         return message;
     }
 
-    public final String getUserInfo() {
-        return user;
+    public MetaData getStorageData() {
+        return data;
+    }
+    
+    public String getUserMail() {
+        return userMail;
     }
 
-    public final String getUserMail() {
-        return userMail;
+    public String getUserInfo() {
+        return userInfo;
     }
 }

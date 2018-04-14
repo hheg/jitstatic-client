@@ -39,7 +39,7 @@ public class AddKeyEntityTest {
         Set<User> users = new HashSet<>();
         users.add(new User("user", "pass"));
         ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] { 1 });
-        KeyEntity data = new AddKeyEntity(bis, new CommitData("master", "key", "msg", "usr", "mail"),
+        Entity data = new AddKeyEntity(bis, new CommitData("key", "master", "msg", "usr", "mail"),
                 new MetaData(users, "application/json"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
@@ -54,7 +54,7 @@ public class AddKeyEntityTest {
         users.add(new User("user", "pass"));
         users.add(new User("user2", "pass"));
         ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] { 1 });
-        KeyEntity data = new AddKeyEntity(bis, new CommitData("master", "key", "msg", "usr", "mail"),
+        Entity data = new AddKeyEntity(bis, new CommitData("key", "master", "msg", "usr", "mail"),
                 new MetaData(users, "application/json"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
