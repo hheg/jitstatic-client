@@ -61,22 +61,49 @@ public class JitStaticUpdaterClientTest {
         StatusLine statusLineMock = Mockito.mock(StatusLine.class);
         HttpEntity entityMock = Mockito.mock(HttpEntity.class);
         Mockito.when(entityMock.getContent()).thenReturn(new ByteArrayInputStream(data));
-        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG)))
-                .thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
+        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG))).thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
         Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.CONTENT_TYPE)))
                 .thenReturn(new Header[] { new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/test") });
         Mockito.when(closableResponseMock.getEntity()).thenReturn(entityMock);
         Mockito.when(statusLineMock.getReasonPhrase()).thenReturn("OK");
         Mockito.when(statusLineMock.getStatusCode()).thenReturn(HttpStatus.SC_OK);
         Mockito.when(closableResponseMock.getStatusLine()).thenReturn(statusLineMock);
-        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-                .thenReturn(closableResponseMock);
+        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
-                .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+                .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         Entity entity = client.getKey("key", null, entityFactory);
+        assertNotNull(entity);
+        assertEquals("application/test", entity.getContentType());
+        assertEquals("\"1234\"", entity.getTag());
+        assertArrayEquals(data, entity.getData());
+    }
+
+    @Test
+    public void testJitStaticUpdaterClientGetKeyETag() throws UnsupportedOperationException, IOException, URISyntaxException, APIException {
+        final byte[] data = new byte[] { 1 };
+        HttpClientBuilder clientBuilderMock = Mockito.mock(HttpClientBuilder.class);
+        CloseableHttpClient clientMock = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse closableResponseMock = Mockito.mock(CloseableHttpResponse.class);
+        StatusLine statusLineMock = Mockito.mock(StatusLine.class);
+        HttpEntity entityMock = Mockito.mock(HttpEntity.class);
+        Mockito.when(entityMock.getContent()).thenReturn(new ByteArrayInputStream(data));
+        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG))).thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
+        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.CONTENT_TYPE)))
+                .thenReturn(new Header[] { new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/test") });
+        Mockito.when(closableResponseMock.getEntity()).thenReturn(entityMock);
+        Mockito.when(statusLineMock.getReasonPhrase()).thenReturn("OK");
+        Mockito.when(statusLineMock.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+        Mockito.when(closableResponseMock.getStatusLine()).thenReturn(statusLineMock);
+        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
+        Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
+
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+                .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
+
+        Entity entity = client.getKey("key", null, "1234", entityFactory);
         assertNotNull(entity);
         assertEquals("application/test", entity.getContentType());
         assertEquals("\"1234\"", entity.getTag());
@@ -91,21 +118,19 @@ public class JitStaticUpdaterClientTest {
         CloseableHttpResponse closableResponseMock = Mockito.mock(CloseableHttpResponse.class);
         StatusLine statusLineMock = Mockito.mock(StatusLine.class);
 
-        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG)))
-                .thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
+        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG))).thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
         Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.CONTENT_TYPE)))
                 .thenReturn(new Header[] { new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/test") });
         Mockito.when(statusLineMock.getReasonPhrase()).thenReturn("OK");
         Mockito.when(statusLineMock.getStatusCode()).thenReturn(HttpStatus.SC_OK);
         Mockito.when(closableResponseMock.getStatusLine()).thenReturn(statusLineMock);
-        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-                .thenReturn(closableResponseMock);
+        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
-                .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+                .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
-        String entity = client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321");
+        String entity = client.modifyKey(data, new CommitData("key", "master", "message", "user", "mail"), "4321");
 
         assertNotNull(entity);
         assertEquals("\"1234\"", entity);
@@ -122,27 +147,24 @@ public class JitStaticUpdaterClientTest {
         StatusLine statusLineMock = Mockito.mock(StatusLine.class);
         HttpEntity entityMock = Mockito.mock(HttpEntity.class);
         Mockito.when(entityMock.getContent()).thenReturn(new ByteArrayInputStream(data));
-        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG)))
-                .thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
+        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG))).thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
         Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.CONTENT_TYPE)))
                 .thenReturn(new Header[] { new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/test") });
         Mockito.when(closableResponseMock.getEntity()).thenReturn(entityMock);
         Mockito.when(statusLineMock.getReasonPhrase()).thenReturn("NOT FOUND");
         Mockito.when(statusLineMock.getStatusCode()).thenReturn(HttpStatus.SC_NOT_FOUND);
         Mockito.when(closableResponseMock.getStatusLine()).thenReturn(statusLineMock);
-        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-                .thenReturn(closableResponseMock);
+        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
-                .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+                .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         client.getKey("key", null, entityFactory);
     }
 
     @Test
-    public void testJitStaticUpdaterClientPutKeyError()
-            throws UnsupportedOperationException, IOException, URISyntaxException, APIException {
+    public void testJitStaticUpdaterClientPutKeyError() throws UnsupportedOperationException, IOException, URISyntaxException, APIException {
         ex.expect(APIException.class);
         ex.expectMessage("http://localhost:80/app/storage/key?ref=refs%2Fheads%2Fmaster failed with: 412 PRECONDITION FAILED");
         final byte[] data = new byte[] { 1 };
@@ -151,21 +173,19 @@ public class JitStaticUpdaterClientTest {
         CloseableHttpResponse closableResponseMock = Mockito.mock(CloseableHttpResponse.class);
         StatusLine statusLineMock = Mockito.mock(StatusLine.class);
 
-        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG)))
-                .thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
+        Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.ETAG))).thenReturn(new Header[] { new BasicHeader(HttpHeaders.ETAG, "\"1234\"") });
         Mockito.when(closableResponseMock.getHeaders(Mockito.eq(HttpHeaders.CONTENT_TYPE)))
                 .thenReturn(new Header[] { new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/test") });
         Mockito.when(statusLineMock.getReasonPhrase()).thenReturn("PRECONDITION FAILED");
         Mockito.when(statusLineMock.getStatusCode()).thenReturn(HttpStatus.SC_PRECONDITION_FAILED);
         Mockito.when(closableResponseMock.getStatusLine()).thenReturn(statusLineMock);
-        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class)))
-                .thenReturn(closableResponseMock);
+        Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
-                .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
+        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+                .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
-        client.modifyKey(data, new CommitData("master", "key", "message", "user", "mail"), "4321");
+        client.modifyKey(data, new CommitData("key", "master", "message", "user", "mail"), "4321");
     }
 
     private TriFunction<InputStream, String, String, Entity> entityFactory = (is, version, content) -> {

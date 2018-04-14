@@ -34,9 +34,9 @@ public class MetaData {
         this(new HashSet<>(), contenttype);
     }
 
-    public MetaData(final Set<User> users, final String contentType) {
-        this.users = Collections.unmodifiableSet(new HashSet<>(users));
-        this.contentType = contentType;
+    public MetaData(final Set<User> users, final String contentType) {        
+        this.users = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(users)));
+        this.contentType = Objects.requireNonNull(contentType);
     }
 
     public final Set<User> getUsers() {
