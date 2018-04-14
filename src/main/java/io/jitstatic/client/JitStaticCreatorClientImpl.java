@@ -57,7 +57,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
     static final String HTTP = "http";
     private static final String UTF_8 = "utf-8";
     private static final String APPLICATION_JSON = "application/json";
-    private static final String JITSTATIC_USERKEY_ENDPOINT = "userkey/";
+    private static final String JITSTATIC_USERKEY_ENDPOINT = "metakey/";
     private static final String JITSTATIC_STORAGE_ENDPOINT = "storage/";
     private static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
             new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"), new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
