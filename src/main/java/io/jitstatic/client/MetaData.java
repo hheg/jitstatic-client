@@ -22,6 +22,7 @@ package io.jitstatic.client;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -29,14 +30,28 @@ public class MetaData {
 
     private final Set<User> users;
     private final String contentType;
+    private final boolean hidden;
+    private final boolean isProtected;
+    private final List<HeaderPair> headers;
 
     public MetaData(final String contenttype) {
         this(new HashSet<>(), contenttype);
     }
 
-    public MetaData(final Set<User> users, final String contentType) {        
+    public MetaData(final Set<User> users, final String contentType, final List<HeaderPair> headers) {
+        this(users, contentType, false, false, headers);
+    }
+
+    public MetaData(final Set<User> users, final String contentType, final boolean isProtected, final boolean hidden, final List<HeaderPair> headers) {
         this.users = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(users)));
         this.contentType = Objects.requireNonNull(contentType);
+        this.isProtected = isProtected;
+        this.hidden = hidden;
+        this.headers = headers;
+    }
+
+    public MetaData(final Set<User> users, final String contentType) {
+        this(users, contentType, false, false, null);
     }
 
     public final Set<User> getUsers() {
@@ -45,6 +60,18 @@ public class MetaData {
 
     public final String getContentType() {
         return contentType;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public boolean isProtected() {
+        return isProtected;
+    }
+
+    public List<HeaderPair> getHeaders() {
+        return headers;
     }
 
     public static final class User {

@@ -22,6 +22,7 @@ package io.jitstatic.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Set;
 
 import io.jitstatic.client.MetaData.User;
@@ -32,6 +33,13 @@ abstract class MetaDataEntity extends Entity {
     private static final byte[] USERS = getBytes("users");
     private static final byte[] PASSWORD = getBytes("password");
     private static final byte[] CONTENTTYPE = getBytes("contentType");
+    private static final byte[] TRUE = getBytes("true");
+    private static final byte[] FALSE = getBytes("false");
+    private static final byte[] PROTECTED = getBytes("protected");
+    private static final byte[] HIDDEN = getBytes("hidden");
+    private static final byte[] HEADERS = getBytes("headers");
+    private static final byte[] HEADER = getBytes("header");
+    private static final byte[] VALUE = getBytes("value");
     private static final byte[] LEFTSQBRACKET = getBytes("[");
     private static final byte[] RIGHTSQBRACKET = getBytes("]");
     private final MetaData metaData;
@@ -57,8 +65,43 @@ abstract class MetaDataEntity extends Entity {
             o.write(RIGHTSQBRACKET);
             o.write(COMMA);
             writeField(CONTENTTYPE, metaData.getContentType(), o);
+            o.write(COMMA);
+            writeBool(PROTECTED, metaData.isProtected(), o);
+            o.write(COMMA);
+            writeBool(HIDDEN, metaData.isHidden(), o);
+            if (metaData.getHeaders() != null) {
+                o.write(COMMA);
+                writeHeaders(metaData.getHeaders(), o);
+            }
         }
         o.write(RIGHTBRACKET);
+    }
+
+    private void writeHeaders(List<HeaderPair> headers, OutputStream o) throws IOException {
+        o.write(DOUBLEQUOTE);
+        o.write(HEADERS);
+        o.write(DOUBLEQUOTE);
+        o.write(COLON);
+        o.write(LEFTSQBRACKET);
+        byte[] b = new byte[0];
+        for (HeaderPair hp : headers) {
+            o.write(b);
+            o.write(LEFTBRACKET);
+            writeField(HEADER, hp.getHeader(), o);
+            o.write(COMMA);
+            writeField(VALUE, hp.getValue(), o);
+            o.write(RIGHTBRACKET);
+            b = COMMA;
+        }
+        o.write(RIGHTSQBRACKET);
+    }
+
+    private void writeBool(byte[] field, boolean value, OutputStream o) throws IOException {
+        o.write(DOUBLEQUOTE);
+        o.write(field);
+        o.write(DOUBLEQUOTE);
+        o.write(COLON);
+        o.write((value ? TRUE : FALSE));
     }
 
     private void writeUsers(final OutputStream o) throws IOException {
