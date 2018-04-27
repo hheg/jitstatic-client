@@ -38,7 +38,6 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -68,8 +67,9 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
 
     static final String REF = "ref";
     private final CloseableHttpClient client;
-    private final HttpClientContext context;
     private final URI baseURL;
+    private final CredentialsProvider credentialsProvider;
+    private final HttpHost target;
 
     JitStaticUpdaterClientImpl(final String host, final int port, final String scheme, final String appContext, final String user, final String password,
             final CacheConfig cacheConfig, final RequestConfig requestConfig, final HttpClientBuilder httpClientBuilder, final File cacheDir)
@@ -90,10 +90,11 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
             throw new IllegalArgumentException("Not supported protocol " + String.valueOf(scheme));
         }
         final HttpHost target = new HttpHost(host, port, scheme);
+        this.target = target;
         if (requestConfig != null) {
             httpClientBuilder.setDefaultRequestConfig(requestConfig);
         }
-        HttpCacheContext cacheContext = null;
+
         if (cacheConfig != null) {
             if (!(httpClientBuilder instanceof CachingHttpClientBuilder)) {
                 throw new IllegalArgumentException("A CacheConfig is specified but HttpClientBuilder is not an instance of CachingHttpClientBuilder");
@@ -103,34 +104,31 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
             if (cacheDir != null) {
                 chcb.setCacheDir(cacheDir);
             }
-            cacheContext = HttpCacheContext.create();
         }
 
         if (user != null) {
             final CredentialsProvider credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(new AuthScope(target.getHostName(), target.getPort()), new UsernamePasswordCredentials(user, password));
             httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
-            this.context = getHostContext(target, credsProvider, cacheContext);
+            this.credentialsProvider = credsProvider;
         } else {
-            this.context = cacheContext;
+            this.credentialsProvider = null;
         }
         client = httpClientBuilder.build();
 
         this.baseURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_ENDPOINT);
     }
 
-    private HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider, final HttpCacheContext cacheContext) {
-        final AuthCache authCache = new BasicAuthCache();
-        authCache.put(target, new BasicScheme());
-        HttpClientContext context;
-        if (cacheContext != null) {
-            context = HttpClientContext.adapt(cacheContext);
-        } else {
-            context = HttpClientContext.create();
+    private static HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider) {
+        if (credsProvider != null) {
+            final AuthCache authCache = new BasicAuthCache();
+            authCache.put(target, new BasicScheme());
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCredentialsProvider(credsProvider);
+            context.setAuthCache(authCache);
+            return context;
         }
-        context.setCredentialsProvider(credsProvider);
-        context.setAuthCache(authCache);
-        return context;
+        return null;
     }
 
     @Override
@@ -154,7 +152,8 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         putRequest.addHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
         putRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
-
+        
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
         final Entity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail());
         putRequest.setEntity(modify);
         try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
@@ -175,7 +174,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
             throws ClientProtocolException, URISyntaxException, IOException, APIException {
         return getKey(key, null, currentVersion, entityFactory);
     }
-    
+
     @Override
     public <T> T getKey(final String key, final String ref, final TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException, APIException {
@@ -196,6 +195,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         if (currentVersion != null) {
             getRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.escapeVersion(currentVersion));
         }
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
         try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
             APIHelper.checkGETresponse(url, getRequest, statusLine);

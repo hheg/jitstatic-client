@@ -65,9 +65,10 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
                     String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(), ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
 
     private final CloseableHttpClient client;
-    private final HttpClientContext context;
     private final URI storageURL;
     private final URI userkeyURL;
+    private final CredentialsProvider credentialsProvider;
+    private final HttpHost target;
 
     JitStaticCreatorClientImpl(final String host, final int port, final String scheme, final String appContext, final String user, final String password,
             final HttpClientBuilder httpClientBuilder, final RequestConfig requestConfig) throws URISyntaxException {
@@ -99,11 +100,12 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
             final CredentialsProvider credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(new AuthScope(target.getHostName(), target.getPort()), new UsernamePasswordCredentials(user, password));
             httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
-            this.context = getHostContext(target, credsProvider);
-        } else {
-            this.context = null;
-        }
+            this.credentialsProvider = credsProvider;
 
+        } else {
+            this.credentialsProvider = null;
+        }
+        this.target = target;
         client = httpClientBuilder.build();
 
         this.storageURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_STORAGE_ENDPOINT);
@@ -111,13 +113,16 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
 
     }
 
-    private HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider) {
-        final AuthCache authCache = new BasicAuthCache();
-        authCache.put(target, new BasicScheme());
-        final HttpClientContext context = HttpClientContext.create();
-        context.setCredentialsProvider(credsProvider);
-        context.setAuthCache(authCache);
-        return context;
+    private static HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider) {
+        if (credsProvider != null) {
+            final AuthCache authCache = new BasicAuthCache();
+            authCache.put(target, new BasicScheme());
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCredentialsProvider(credsProvider);
+            context.setAuthCache(authCache);
+            return context;
+        }
+        return null;
     }
 
     @Override
@@ -136,6 +141,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         }
         postRequest.addHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
         postRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
 
         final MetaDataEntity modify = new AddKeyEntity(data, commitData, metaData);
         postRequest.setEntity(modify);
@@ -187,6 +193,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         if (currentVersion != null) {
             getRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.escapeVersion(currentVersion));
         }
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
         try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
             APIHelper.checkGETresponse(url, getRequest, statusLine);
@@ -218,6 +225,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         putRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
 
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
         putRequest.setEntity(new ModifyUserKeyEntity(data));
         try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
