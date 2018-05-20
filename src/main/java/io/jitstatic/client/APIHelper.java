@@ -26,6 +26,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
@@ -69,6 +70,16 @@ class APIHelper {
             break;
         default:
             throw new APIException(statusLine, url.toString(), getRequest.getMethod());
+        }
+    }
+
+    static void checkDELETEresponse(final URI url, final HttpDelete request, final StatusLine statusLine) throws APIException {
+        switch (statusLine.getStatusCode()) {
+        case HttpStatus.SC_OK:
+        case HttpStatus.SC_ACCEPTED:
+            break;
+        default:
+            throw new APIException(statusLine, url.toString(), request.getMethod());
         }
     }
 
