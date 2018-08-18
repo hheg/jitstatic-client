@@ -185,7 +185,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
 
-        final URIBuilder uriBuilder = new URIBuilder(userkeyURL.resolve(key));
+        final URIBuilder uriBuilder = resolve(key);
         APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
         final URI url = uriBuilder.build();
         final HttpGet getRequest = new HttpGet(url);
@@ -216,7 +216,7 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(version, "version cannot be null");
 
-        final URIBuilder uriBuilder = new URIBuilder(userkeyURL.resolve(key));
+        final URIBuilder uriBuilder = resolve(key);
         APIHelper.addRefParameter(ref, uriBuilder);
         final URI uri = uriBuilder.build();
         final HttpPut putRequest = new HttpPut(uri);
@@ -232,5 +232,12 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
             APIHelper.checkPUTStatusCode(uri, putRequest, statusLine);
             return APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
         }
+    }
+    
+    private URIBuilder resolve(final String key) {
+        if("/".equals(key)) {
+            return new URIBuilder(userkeyURL);
+        }
+        return new URIBuilder(userkeyURL.resolve(key));
     }
 }
