@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.jitstatic</groupId>
@@ -11,17 +12,17 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.5.5</version>
+			<version>4.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient-cache</artifactId>
-			<version>4.5.5</version>
+			<version>4.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>2.15.0</version>
+			<version>2.21.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -65,7 +66,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>3.0.0</version>
-				</plugin>				
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
@@ -109,12 +110,12 @@
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
-					<version>3.1.1</version>
+					<version>3.1.6</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-enforcer-plugin</artifactId>
-					<version>3.0.0-M1</version>
+					<version>3.0.0-M2</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -134,6 +135,25 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce-maven</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>[3.1.1,)</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -169,7 +189,7 @@
 					<dependency>
 						<groupId>com.github.spotbugs</groupId>
 						<artifactId>spotbugs</artifactId>
-						<version>3.1.3</version>
+						<version>3.1.6</version>
 					</dependency>
 				</dependencies>
 				<configuration>
@@ -203,12 +223,16 @@
 					</gitFlowConfig>
 
 					<commitMessages>
-						<featureStartMessage>update versions for feature branch @{featureName}</featureStartMessage>
-						<featureFinishMessage>update versions for development branch @{featureName}</featureFinishMessage>
+						<featureStartMessage>update versions for feature branch
+							@{featureName}</featureStartMessage>
+						<featureFinishMessage>update versions for development branch
+							@{featureName}</featureFinishMessage>
 						<hotfixStartMessage>@{version} update versions for hotfix</hotfixStartMessage>
-						<hotfixFinishMessage>@{version} update for next development version</hotfixFinishMessage>
+						<hotfixFinishMessage>@{version} update for next development
+							version</hotfixFinishMessage>
 						<releaseStartMessage>@{version} update versions for release</releaseStartMessage>
-						<releaseFinishMessage>@{version} update for next development version</releaseFinishMessage>
+						<releaseFinishMessage>@{version} update for next development
+							version</releaseFinishMessage>
 						<tagHotfixMessage>tag hotfix</tagHotfixMessage>
 						<tagReleaseMessage>tag release</tagReleaseMessage>
 					</commitMessages>
@@ -288,17 +312,17 @@
 						</executions>
 					</plugin>
 					<plugin>
-      					<groupId>org.apache.maven.plugins</groupId>
-      					<artifactId>maven-javadoc-plugin</artifactId>      				
-      					<executions>
-        					<execution>
-          						<id>attach-javadocs</id>
-          						<goals>
-            						<goal>jar</goal>
-          						</goals>
-        					</execution>
-      					</executions>
-    				</plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>

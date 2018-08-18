@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
+import java.util.function.Function;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -149,7 +150,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(version, "version cannot be null");
 
-        final URIBuilder uriBuilder = new URIBuilder(baseURL.resolve(commitData.getKey()));
+        final URIBuilder uriBuilder = resolve(commitData.getKey());
         APIHelper.addRefParameter(commitData.getBranch(), uriBuilder);
         final URI uri = uriBuilder.build();
         final HttpPut putRequest = new HttpPut(uri);
@@ -193,7 +194,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
 
-        final URIBuilder uriBuilder = new URIBuilder(baseURL.resolve(key));
+        final URIBuilder uriBuilder = resolve(key);
         APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
         final URI url = uriBuilder.build();
         final HttpGet getRequest = new HttpGet(url);
@@ -217,6 +218,30 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         }
     }
 
+    public <T> T listAll(final String key, final Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException {
+        return listAll(key, null, entityFactory);
+    }
+
+    public <T> T listAll(final String key, final String ref, final Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException {
+        Objects.requireNonNull(key, "key cannot be null");
+        Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
+
+        final URIBuilder uriBuilder = resolve(key);
+        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
+        final URI url = uriBuilder.build();
+        final HttpGet getRequest = new HttpGet(url);
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
+        try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
+            final StatusLine statusLine = httpResponse.getStatusLine();
+            APIHelper.checkGETresponse(url, getRequest, statusLine);
+            try (final InputStream content = httpResponse.getEntity().getContent()) {
+                return entityFactory.apply(content);
+            }
+        }
+    }
+
     @Override
     public void close() {
         try {
@@ -228,7 +253,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
     @Override
     public void delete(final CommitData commitData) throws URISyntaxException, ClientProtocolException, IOException {
         Objects.requireNonNull(commitData);
-        final URIBuilder uriBuilder = new URIBuilder(baseURL.resolve(commitData.getKey()));
+        final URIBuilder uriBuilder = resolve(commitData.getKey());
         APIHelper.addRefParameter(Utils.checkRef(commitData.getBranch()), uriBuilder);
         final URI url = uriBuilder.build();
         final HttpDelete deleteRequest = new HttpDelete(url);
@@ -241,5 +266,12 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
             final StatusLine statusLine = httpResponse.getStatusLine();
             APIHelper.checkDELETEresponse(url, deleteRequest, statusLine);
         }
+    }
+    
+    private URIBuilder resolve(final String key) {
+        if("/".equals(key)) {
+            return new URIBuilder(baseURL);
+        }
+        return new URIBuilder(baseURL.resolve(key));
     }
 }
