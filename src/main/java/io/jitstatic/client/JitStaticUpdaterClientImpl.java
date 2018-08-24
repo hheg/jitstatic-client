@@ -69,6 +69,8 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
                     ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
 
     static final String REF = "ref";
+    private static final String RECURSIVE = "recursive";
+    private static final String LIGHT = "light";
     private final CloseableHttpClient client;
     private final URI baseURL;
     private final CredentialsProvider credentialsProvider;
@@ -224,12 +226,41 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
     }
 
     public <T> T listAll(final String key, final String ref, final Function<InputStream, T> entityFactory)
+            throws ClientProtocolException, URISyntaxException, IOException {
+        return listAll(key, ref, false, entityFactory);
+    }
+
+    @Override
+    public <T> T listAll(final String key, final boolean recursive, final Function<InputStream, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException {
+        return listAll(key, null, recursive, entityFactory);
+    }
+
+    @Override
+    public <T> T listAll(final String key, final boolean recursive, final boolean light, final Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException {
+        return listAll(key, null, recursive, light, entityFactory);
+    }
+
+    @Override
+    public <T> T listAll(final String key, final String ref, final boolean recursive, final Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException {
+        return listAll(key, ref, recursive, false, entityFactory);
+    }
+
+    public <T> T listAll(final String key, final String ref, final boolean recursive, final boolean light,
+            final Function<InputStream, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
 
         final URIBuilder uriBuilder = resolve(key);
         APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
+        if (recursive) {
+            uriBuilder.addParameter(JitStaticUpdaterClientImpl.RECURSIVE, "true");
+        }
+        if (light) {
+            uriBuilder.addParameter(JitStaticUpdaterClientImpl.LIGHT, "true");
+        }
         final URI url = uriBuilder.build();
         final HttpGet getRequest = new HttpGet(url);
         final HttpClientContext context = getHostContext(target, credentialsProvider);
@@ -267,9 +298,9 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
             APIHelper.checkDELETEresponse(url, deleteRequest, statusLine);
         }
     }
-    
+
     private URIBuilder resolve(final String key) {
-        if("/".equals(key)) {
+        if ("/".equals(key)) {
             return new URIBuilder(baseURL);
         }
         return new URIBuilder(baseURL.resolve(key));

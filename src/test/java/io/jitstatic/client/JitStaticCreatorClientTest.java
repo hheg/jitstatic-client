@@ -20,7 +20,6 @@ package io.jitstatic.client;
  * #L%
  */
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -173,18 +172,12 @@ public class JitStaticCreatorClientTest {
 
     private static class Entity {
 
-        private final byte[] data;
         private final String contentType;
         private final String tag;
 
         public Entity(String tag, String contentType, byte[] data) {
             this.tag = tag;
             this.contentType = contentType;
-            this.data = data;
-        }
-
-        public byte[] getData() {
-            return data;
         }
 
         public String getContentType() {

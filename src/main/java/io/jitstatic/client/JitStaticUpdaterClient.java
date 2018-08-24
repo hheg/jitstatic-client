@@ -47,10 +47,21 @@ public interface JitStaticUpdaterClient extends AutoCloseable {
     <T> T getKey(String key, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException, APIException;
 
-    <T> T listAll(final String key, final Function<InputStream, T> entityFactory)
+    <T> T listAll(String key, Function<InputStream, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException;
+
+    <T> T listAll(String key, String ref, Function<InputStream, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException;
 
-    <T> T listAll(final String key, final String ref, final Function<InputStream, T> entityFactory)
+    <T> T listAll(String key, boolean recursive, Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException;
+
+    <T> T listAll(String key, String ref, boolean recursive, Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException;
+
+    <T> T listAll(String key, boolean recursive, boolean light, Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException;
+
+    <T> T listAll(String key, String ref, boolean recursive, boolean light, Function<InputStream, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException;
 
     void delete(CommitData commitData) throws URISyntaxException, APIException, ClientProtocolException, IOException;
