@@ -252,7 +252,9 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
             final Function<InputStream, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
-
+        if (!key.endsWith("/")) {
+            throw new IllegalArgumentException(String.format("%s must end with / to be able to perform list operation", key));
+        }
         final URIBuilder uriBuilder = resolve(key);
         APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
         if (recursive) {
