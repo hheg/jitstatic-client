@@ -23,6 +23,7 @@ package io.jitstatic.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.function.Function;
 
 import org.apache.http.client.ClientProtocolException;
@@ -62,6 +63,9 @@ public interface JitStaticUpdaterClient extends AutoCloseable {
             throws URISyntaxException, ClientProtocolException, IOException;
 
     <T> T listAll(String key, String ref, boolean recursive, boolean light, Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException;
+
+    <T> T search(List<BulkSearch> search, Function<InputStream, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException;
 
     void delete(CommitData commitData) throws URISyntaxException, APIException, ClientProtocolException, IOException;

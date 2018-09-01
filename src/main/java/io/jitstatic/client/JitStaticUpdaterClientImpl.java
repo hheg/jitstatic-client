@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -43,6 +44,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
@@ -75,6 +77,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
     private final URI baseURL;
     private final CredentialsProvider credentialsProvider;
     private final HttpHost target;
+    private final URI bulkURL;
 
     JitStaticUpdaterClientImpl(final String host, final int port, final String scheme, final String appContext, final String user,
             final String password, final CacheConfig cacheConfig, final RequestConfig requestConfig,
@@ -125,6 +128,8 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
 
         this.baseURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext)
                 .resolve(JITSTATIC_ENDPOINT);
+        this.bulkURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext)
+                .resolve("bulk/");
     }
 
     private static HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider) {
@@ -162,7 +167,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
 
         final HttpClientContext context = getHostContext(target, credentialsProvider);
-        final Entity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail());
+        final JsonEntity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail());
         putRequest.setEntity(modify);
         try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
@@ -265,10 +270,28 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         }
         final URI url = uriBuilder.build();
         final HttpGet getRequest = new HttpGet(url);
+        getRequest.setHeaders(HEADERS);
         final HttpClientContext context = getHostContext(target, credentialsProvider);
         try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
             APIHelper.checkGETresponse(url, getRequest, statusLine);
+            try (final InputStream content = httpResponse.getEntity().getContent()) {
+                return entityFactory.apply(content);
+            }
+        }
+    }
+
+    @Override
+    public <T> T search(final List<BulkSearch> search, final Function<InputStream, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException {
+        final URI url = bulkURL.resolve("search");
+        final HttpPost postRequest = new HttpPost(url);
+        postRequest.setHeaders(HEADERS);
+        postRequest.setEntity(new BulkSearchEntity(search));
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
+        try (final CloseableHttpResponse httpResponse = client.execute(postRequest, context)) {
+            final StatusLine statusLine = httpResponse.getStatusLine();
+            APIHelper.checkPOSTresponse(url, postRequest, statusLine);
             try (final InputStream content = httpResponse.getEntity().getContent()) {
                 return entityFactory.apply(content);
             }
@@ -307,4 +330,5 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
         }
         return new URIBuilder(baseURL.resolve(key));
     }
+
 }

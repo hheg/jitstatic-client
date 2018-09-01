@@ -23,7 +23,8 @@ package io.jitstatic.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.Header;
@@ -31,17 +32,19 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.message.BasicHeader;
 
-abstract class Entity implements HttpEntity {
+abstract class JsonEntity implements HttpEntity {
 
-    protected static final String UTF_8 = "UTF-8";
+    protected static final Charset UTF_8 = StandardCharsets.UTF_8;
     protected static final byte[] LEFTBRACKET = getBytes("{");
     protected static final byte[] RIGHTBRACKET = getBytes("}");
     protected static final byte[] COLON = getBytes(":");
     protected static final byte[] DOUBLEQUOTE = getBytes("\"");
     protected static final byte[] COMMA = getBytes(",");
-    protected static final byte[] USERINFO = getBytes("userInfo");
-    protected static final byte[] USERMAIL = getBytes("userMail");
-    protected static final byte[] MESSAGE = getBytes("message");
+    protected static final byte[] LEFTSQBRACKET = getBytes("[");
+    protected static final byte[] RIGHTSQBRACKET = getBytes("]");
+    private static final byte[] TRUE = getBytes("true");
+    private static final byte[] FALSE = getBytes("false");
+
     protected final AtomicBoolean bool = new AtomicBoolean(false);
 
     protected void writeField(final byte[] field, final String value, final OutputStream o) throws IOException {
@@ -70,7 +73,7 @@ abstract class Entity implements HttpEntity {
 
     @Override
     public Header getContentEncoding() {
-        return new BasicHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
+        return new BasicHeader(HttpHeaders.CONTENT_ENCODING, UTF_8.name());
     }
 
     @Override
@@ -82,13 +85,13 @@ abstract class Entity implements HttpEntity {
     public boolean isStreaming() {
         return bool.get();
     }
-    
+
     @Deprecated
     @Override
     public void consumeContent() throws IOException {
         throw new UnsupportedOperationException("consumeContent is unsupported");
     }
-    
+
     private void writeFieldToStream(final byte[] field, final byte[] value, final OutputStream o) throws IOException {
         o.write(DOUBLEQUOTE);
         o.write(field);
@@ -100,11 +103,15 @@ abstract class Entity implements HttpEntity {
     }
 
     protected static byte[] getBytes(final String tokens) {
-        try {
-            return tokens.getBytes(UTF_8);
-        } catch (final UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return tokens.getBytes(UTF_8);
+    }
+
+    protected void writeBool(byte[] field, boolean value, OutputStream o) throws IOException {
+        o.write(DOUBLEQUOTE);
+        o.write(field);
+        o.write(DOUBLEQUOTE);
+        o.write(COLON);
+        o.write((value ? TRUE : FALSE));
     }
 
 }
