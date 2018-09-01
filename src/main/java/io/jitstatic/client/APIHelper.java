@@ -28,6 +28,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 
@@ -99,6 +100,17 @@ class APIHelper {
             version += "\"";
         }
         return version;
+    }
+
+    public static void checkPOSTresponse(URI url, HttpPost postRequest, StatusLine statusLine) throws APIException {
+        switch (statusLine.getStatusCode()) {
+        case HttpStatus.SC_OK:
+        case HttpStatus.SC_ACCEPTED:
+            break;
+        default:
+            throw new APIException(statusLine, url.toString(), postRequest.getMethod());
+        }
+        
     }
 
 }

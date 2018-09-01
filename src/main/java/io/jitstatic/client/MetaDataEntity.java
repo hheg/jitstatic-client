@@ -27,24 +27,23 @@ import java.util.Set;
 
 import io.jitstatic.client.MetaData.User;
 
-abstract class MetaDataEntity extends Entity {
+abstract class MetaDataEntity extends JsonEntity {
 
     private static final byte[] METADATA = getBytes("metaData");
     private static final byte[] USERS = getBytes("users");
     private static final byte[] PASSWORD = getBytes("password");
     private static final byte[] CONTENTTYPE = getBytes("contentType");
-    private static final byte[] TRUE = getBytes("true");
-    private static final byte[] FALSE = getBytes("false");
     private static final byte[] PROTECTED = getBytes("protected");
     private static final byte[] HIDDEN = getBytes("hidden");
     private static final byte[] HEADERS = getBytes("headers");
     private static final byte[] HEADER = getBytes("header");
     private static final byte[] VALUE = getBytes("value");
-    private static final byte[] LEFTSQBRACKET = getBytes("[");
-    private static final byte[] RIGHTSQBRACKET = getBytes("]");
-    private final MetaData metaData;
     protected static final byte[] USER = getBytes("user");
-
+    protected static final byte[] USERINFO = getBytes("userInfo");
+    protected static final byte[] USERMAIL = getBytes("userMail");
+    protected static final byte[] MESSAGE = getBytes("message");
+    
+    private final MetaData metaData;
     public MetaDataEntity(final MetaData data) {
         this.metaData = data;
     }
@@ -94,14 +93,6 @@ abstract class MetaDataEntity extends Entity {
             b = COMMA;
         }
         o.write(RIGHTSQBRACKET);
-    }
-
-    private void writeBool(byte[] field, boolean value, OutputStream o) throws IOException {
-        o.write(DOUBLEQUOTE);
-        o.write(field);
-        o.write(DOUBLEQUOTE);
-        o.write(COLON);
-        o.write((value ? TRUE : FALSE));
     }
 
     private void writeUsers(final OutputStream o) throws IOException {

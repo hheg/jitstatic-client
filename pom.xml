@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.jitstatic</groupId>
 	<artifactId>jitstatic-client</artifactId>
-	<version>0.7.1</version>
+	<version>0.8.0</version>
 	<name>JitStatic API Client</name>
 	<description>This is the API client for the JitStatic server</description>
 	<url>https://github.com/hheg/jitstatic-client</url>
@@ -31,6 +31,7 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		
 	</dependencies>
 	<properties>
 		<maven.compiler.target>1.8</maven.compiler.target>
