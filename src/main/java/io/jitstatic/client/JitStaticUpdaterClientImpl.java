@@ -284,7 +284,7 @@ class JitStaticUpdaterClientImpl implements JitStaticUpdaterClient {
     @Override
     public <T> T search(final List<BulkSearch> search, final Function<InputStream, T> entityFactory)
             throws URISyntaxException, ClientProtocolException, IOException {
-        final URI url = bulkURL.resolve("search");
+        final URI url = bulkURL.resolve("fetch");
         final HttpPost postRequest = new HttpPost(url);
         postRequest.setHeaders(HEADERS);
         postRequest.setEntity(new BulkSearchEntity(search));
