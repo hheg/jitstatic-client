@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.jitstatic</groupId>
 	<artifactId>jitstatic-client</artifactId>
-	<version>0.8.2</version>
+	<version>0.8.3-SNAPSHOT</version>
 	<name>JitStatic API Client</name>
 	<description>This is the API client for the JitStatic server</description>
 	<url>https://github.com/hheg/jitstatic-client</url>
