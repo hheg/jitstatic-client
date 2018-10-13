@@ -71,7 +71,7 @@ public class JitStaticUpdaterClientTest {
         Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+        JitStaticUpdaterClient client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
                 .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         Entity entity = client.getKey("key", null, entityFactory);
@@ -100,7 +100,7 @@ public class JitStaticUpdaterClientTest {
         Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+        JitStaticUpdaterClient client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
                 .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         Entity entity = client.getKey("key", null, "1234", entityFactory);
@@ -127,7 +127,7 @@ public class JitStaticUpdaterClientTest {
         Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+        JitStaticUpdaterClient client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
                 .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         String entity = client.modifyKey(data, new CommitData("key", "master", "message", "user", "mail"), "4321");
@@ -157,7 +157,7 @@ public class JitStaticUpdaterClientTest {
         Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+        JitStaticUpdaterClient client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
                 .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         client.getKey("key", null, entityFactory);
@@ -182,7 +182,7 @@ public class JitStaticUpdaterClientTest {
         Mockito.when(clientMock.execute(Mockito.any(HttpUriRequest.class), Mockito.any(HttpContext.class))).thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticUpdaterClientImpl client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
+        JitStaticUpdaterClient client = JitStaticUpdaterClient.create().setAppContext("/app/").setHost("localhost").setPort(80).setUser("user")
                 .setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
 
         client.modifyKey(data, new CommitData("key", "master", "message", "user", "mail"), "4321");

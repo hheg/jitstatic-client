@@ -26,49 +26,37 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.http.client.ClientProtocolException;
+public interface JitStaticUpdaterClient extends AutoCloseable, JitStaticCreatorClient {
 
-public interface JitStaticUpdaterClient extends AutoCloseable {
+    String modifyKey(byte[] data, CommitData commitData, String version) throws URISyntaxException, IOException, APIException;
 
-    String modifyKey(byte[] data, CommitData commitData, String version)
-            throws URISyntaxException, ClientProtocolException, IOException, APIException;
+    String modifyKey(InputStream data, CommitData commitData, String version) throws URISyntaxException, IOException, APIException;
 
-    String modifyKey(InputStream data, CommitData commitData, String version)
-            throws URISyntaxException, ClientProtocolException, IOException, APIException;
+    <T> T getKey(String key, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, IOException, APIException;
 
-    <T> T getKey(String key, TriFunction<InputStream, String, String, T> entityFactory)
-            throws ClientProtocolException, URISyntaxException, IOException, APIException;
-
-    <T> T getKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException, APIException;
+    <T> T getKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, IOException, APIException;
 
     <T> T getKey(String key, TriFunction<InputStream, String, String, T> entityFactory, String currentVersion)
-            throws ClientProtocolException, URISyntaxException, IOException, APIException;
+            throws URISyntaxException, IOException, APIException;
 
     <T> T getKey(String key, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException, APIException;
+            throws URISyntaxException, IOException, APIException;
 
-    <T> T listAll(String key, Function<InputStream, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T listAll(String key, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    <T> T listAll(String key, String ref, Function<InputStream, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T listAll(String key, String ref, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    <T> T listAll(String key, boolean recursive, Function<InputStream, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T listAll(String key, boolean recursive, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    <T> T listAll(String key, String ref, boolean recursive, Function<InputStream, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T listAll(String key, String ref, boolean recursive, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    <T> T listAll(String key, boolean recursive, boolean light, Function<InputStream, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T listAll(String key, boolean recursive, boolean light, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    <T> T listAll(String key, String ref, boolean recursive, boolean light, Function<InputStream, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T listAll(String key, String ref, boolean recursive, boolean light, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    <T> T search(List<BulkSearch> search, Function<InputStream, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException;
+    <T> T search(List<BulkSearch> search, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    void delete(CommitData commitData) throws URISyntaxException, APIException, ClientProtocolException, IOException;
+    void delete(CommitData commitData) throws URISyntaxException, APIException, IOException;
 
     void close();
 

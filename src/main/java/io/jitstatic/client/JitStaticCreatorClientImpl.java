@@ -21,10 +21,9 @@ package io.jitstatic.client;
  */
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
@@ -34,12 +33,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -53,34 +50,42 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.cache.CacheConfig;
+import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.util.EntityUtils;
 
 class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
 
-    private static final String HTTPS = "https";
+    protected static final String HTTPS = "https";
+    protected static final String BULK = "bulk/";
+
     static final String HTTP = "http";
-    private static final String UTF_8 = "utf-8";
-    private static final String APPLICATION_JSON = "application/json";
-    private static final String JITSTATIC_USERKEY_ENDPOINT = "metakey/";
-    private static final String JITSTATIC_STORAGE_ENDPOINT = "storage/";
-    private static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
+    protected static final String UTF_8 = "utf-8";
+    protected static final String APPLICATION_JSON = "application/json";
+    protected static final String JITSTATIC_METAKEY_ENDPOINT = "metakey/";
+    protected static final String JITSTATIC_STORAGE_ENDPOINT = "storage/";
+    protected static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
             new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"), new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
             new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"), new BasicHeader(HttpHeaders.USER_AGENT,
                     String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(), ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
 
-    private final CloseableHttpClient client;
-    private final URI storageURL;
-    private final URI userkeyURL;
-    private final CredentialsProvider credentialsProvider;
-    private final HttpHost target;
+    static final String REF = "ref";
+    protected static final String RECURSIVE = "recursive";
+    protected static final String LIGHT = "light";
+    protected final CloseableHttpClient client;
+    protected final URI storageURL;
+    protected final URI metakeyURL;
+    protected final URI baseURL;
+    protected final URI bulkURL;
+    protected final CredentialsProvider credentialsProvider;
+    protected final HttpHost target;
 
     JitStaticCreatorClientImpl(final String host, final int port, final String scheme, final String appContext, final String user, final String password,
-            final HttpClientBuilder httpClientBuilder, final RequestConfig requestConfig) throws URISyntaxException {
-        Objects.requireNonNull(httpClientBuilder);
-        Objects.requireNonNull(host);
-        Objects.requireNonNull(appContext);
-
+            final CacheConfig cacheConfig, final RequestConfig requestConfig, final HttpClientBuilder httpClientBuilder, final File cacheDir)
+            throws URISyntaxException {
+        Objects.requireNonNull(host, "host cannot be null");
+        Objects.requireNonNull(appContext, "appContext cannot be null");
+        Objects.requireNonNull(httpClientBuilder, "httpClientBuilder cannot be null");
         if (host.isEmpty()) {
             throw new IllegalArgumentException("host cannot be empty");
         }
@@ -90,35 +95,49 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         if (!appContext.endsWith("/")) {
             throw new IllegalArgumentException("appContext " + appContext + " doesn't end with an '/'");
         }
-
-        if (!(HTTP.equalsIgnoreCase(Objects.requireNonNull(scheme)) || HTTPS.equalsIgnoreCase(scheme))) {
+        if (!(Objects.requireNonNull(scheme).equalsIgnoreCase(HTTP) || HTTPS.equalsIgnoreCase(scheme))) {
             throw new IllegalArgumentException("Not supported protocol " + scheme);
         }
-
+        this.target = new HttpHost(host, port, scheme);
         if (requestConfig != null) {
             httpClientBuilder.setDefaultRequestConfig(requestConfig);
         }
 
-        final HttpHost target = new HttpHost(host, port, scheme);
+        if (cacheConfig != null) {
+            if (!(httpClientBuilder instanceof CachingHttpClientBuilder)) {
+                throw new IllegalArgumentException("A CacheConfig is specified but HttpClientBuilder is not an instance of CachingHttpClientBuilder");
+            }
+            final CachingHttpClientBuilder chcb = ((CachingHttpClientBuilder) httpClientBuilder);
+            chcb.setCacheConfig(cacheConfig);
+            if (cacheDir != null) {
+                chcb.setCacheDir(cacheDir);
+            }
+        }
 
         if (user != null) {
             final CredentialsProvider credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(new AuthScope(target.getHostName(), target.getPort()), new UsernamePasswordCredentials(user, password));
             httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
             this.credentialsProvider = credsProvider;
-
         } else {
             this.credentialsProvider = null;
         }
-        this.target = target;
         client = httpClientBuilder.build();
 
+        this.baseURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_STORAGE_ENDPOINT);
+        this.bulkURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(BULK);
         this.storageURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_STORAGE_ENDPOINT);
-        this.userkeyURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_USERKEY_ENDPOINT);
+        this.metakeyURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_METAKEY_ENDPOINT);
 
     }
 
-    private static HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider) {
+    @Deprecated
+    JitStaticCreatorClientImpl(final String host, final int port, final String scheme, final String appContext, final String user, final String password,
+            final HttpClientBuilder httpClientBuilder, final RequestConfig requestConfig) throws URISyntaxException {
+        this(host, port, scheme, appContext, user, password, null, requestConfig, httpClientBuilder, null);
+    }
+
+    protected static HttpClientContext getHostContext(final HttpHost target, final CredentialsProvider credsProvider) {
         if (credsProvider != null) {
             final AuthCache authCache = new BasicAuthCache();
             authCache.put(target, new BasicScheme());
@@ -130,11 +149,10 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         return null;
     }
 
-    private void checkPOStStatusCode(final HttpPost postRequest, final StatusLine statusLine, HttpEntity httpEntity) throws ParseException, IOException {
-        switch (statusLine.getStatusCode()) {
-        case HttpStatus.SC_OK:
-            break;
-        default:
+    private void checkPOStStatusCode(final HttpPost postRequest, final StatusLine statusLine, HttpEntity httpEntity) throws IOException {
+        int statusCode = statusLine.getStatusCode();
+        if (statusCode == HttpStatus.SC_OK) {
+        } else {
             throw new APIException(statusLine, storageURL.toString(), postRequest.getMethod(), httpEntity);
         }
     }
@@ -149,17 +167,17 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
 
     @Override
     public <T> T getMetaKey(final String key, final String ref, final TriFunction<InputStream, String, String, T> entityFactory)
-            throws ClientProtocolException, URISyntaxException, IOException {
+            throws URISyntaxException, IOException {
         return getMetaKey(key, ref, null, entityFactory);
     }
 
     @Override
     public <T> T getMetaKey(final String key, final String ref, final String currentVersion, final TriFunction<InputStream, String, String, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException {
+            throws URISyntaxException, IOException {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
 
-        final URIBuilder uriBuilder = resolve(key);
+        final URIBuilder uriBuilder = resolve(key, metakeyURL);
         APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
         final URI url = uriBuilder.build();
         final HttpGet getRequest = new HttpGet(url);
@@ -184,14 +202,13 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
     }
 
     @Override
-    public String modifyMetaKey(final String key, final String ref, final String version, final ModifyUserKeyData data)
-            throws ClientProtocolException, IOException, URISyntaxException {
+    public String modifyMetaKey(final String key, final String ref, final String version, final ModifyUserKeyData data) throws IOException, URISyntaxException {
         Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(version, "version cannot be null");
 
-        final URIBuilder uriBuilder = resolve(key);
-        APIHelper.addRefParameter(ref, uriBuilder);
+        final URIBuilder uriBuilder = resolve(key, metakeyURL);
+        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
         final URI uri = uriBuilder.build();
         final HttpPut putRequest = new HttpPut(uri);
         putRequest.setHeaders(HEADERS);
@@ -208,20 +225,22 @@ class JitStaticCreatorClientImpl implements JitStaticCreatorClient {
         }
     }
 
-    private URIBuilder resolve(final String key) {
+    protected URIBuilder resolve(final String key, URI url) {
         if ("/".equals(key)) {
-            return new URIBuilder(userkeyURL);
+            return new URIBuilder(url);
         }
-        return new URIBuilder(userkeyURL.resolve(key));
+        return new URIBuilder(url.resolve(key));
     }
 
     @Override
-    public String createKey(byte[] data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException {
+    @Deprecated
+    public String createKey(byte[] data, CommitData commitData, MetaData metaData) throws IOException, APIException {
         return createKey(new ByteArrayInputStream(data), commitData, metaData);
     }
 
     @Override
-    public String createKey(InputStream data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException {
+    @Deprecated
+    public String createKey(InputStream data, CommitData commitData, MetaData metaData) throws IOException, APIException {
         final HttpPost postRequest = new HttpPost(storageURL);
         postRequest.setHeaders(HEADERS);
         if (!APPLICATION_JSON.equals(metaData.getContentType())) {

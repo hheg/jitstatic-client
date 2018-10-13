@@ -26,6 +26,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 
+@Deprecated
 public class JitStaticCreatorClientBuilder {
     private int port = 80;
     private String scheme = JitStaticCreatorClientImpl.HTTP;
@@ -99,7 +100,7 @@ public class JitStaticCreatorClientBuilder {
         return this;
     }
 
-    public JitStaticCreatorClientImpl build() throws URISyntaxException {
+    public JitStaticCreatorClient build() throws URISyntaxException {
         if (httpClientBuilder == null) {
             httpClientBuilder = HttpClients.custom();
         }

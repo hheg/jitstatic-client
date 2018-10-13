@@ -122,7 +122,7 @@ public class JitStaticUpdaterClientBuilder {
         return this;
     }
 
-    public JitStaticUpdaterClientImpl build() throws URISyntaxException {
+    public JitStaticUpdaterClient build() throws URISyntaxException {
         if (httpClientBuilder == null) {
             if (cacheConfig != null) {
                 httpClientBuilder = CachingHttpClients.custom();

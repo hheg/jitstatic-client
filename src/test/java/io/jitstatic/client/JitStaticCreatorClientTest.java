@@ -78,7 +78,7 @@ public class JitStaticCreatorClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        JitStaticCreatorClientImpl client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        JitStaticCreatorClient client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();
         Set<User> users = new HashSet<>();
         users.add(new User("user", "pass"));
@@ -111,7 +111,7 @@ public class JitStaticCreatorClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        try (JitStaticCreatorClientImpl client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        try (JitStaticCreatorClient client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();) {
             Set<User> users = new HashSet<>();
             users.add(new User("user", "pass"));
@@ -144,7 +144,7 @@ public class JitStaticCreatorClientTest {
                 .thenReturn(closableResponseMock);
         Mockito.when(clientBuilderMock.build()).thenReturn(clientMock);
 
-        try (JitStaticCreatorClientImpl client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
+        try (JitStaticCreatorClient client = JitStaticCreatorClient.create().setAppContext("/app/").setHost("localhost").setPort(80)
                 .setUser("user").setPassword("pass").setScheme("http").setHttpClientBuilder(clientBuilderMock).build();) {
             Entity entity = client.getMetaKey("key", null, entityFactory);
             assertNotNull(entity);

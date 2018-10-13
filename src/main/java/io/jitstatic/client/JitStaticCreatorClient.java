@@ -27,20 +27,19 @@ import java.net.URISyntaxException;
 import org.apache.http.client.ClientProtocolException;
 
 public interface JitStaticCreatorClient extends AutoCloseable {
-    
-    String createKey(byte[] data, CommitData commitData, MetaData metaData)
-            throws ClientProtocolException, IOException, APIException;
-    
-    String createKey(InputStream data, CommitData commitData, MetaData metaData)
-            throws ClientProtocolException, IOException, APIException;
-    
+
+    String createKey(byte[] data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException;
+
+    String createKey(InputStream data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException;
+
     <T> T getMetaKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, URISyntaxException, IOException;
-    
-    <T> T getMetaKey(String key, String ref, String version, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, ClientProtocolException, IOException;
-    
+
+    <T> T getMetaKey(String key, String ref, String version, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, ClientProtocolException, IOException;
+
     String modifyMetaKey(String key, String ref, String version, ModifyUserKeyData data) throws ClientProtocolException, IOException, URISyntaxException;
-        
+
     void close();
 
     static JitStaticCreatorClientBuilder create() {
