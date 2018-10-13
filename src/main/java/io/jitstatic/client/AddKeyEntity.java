@@ -29,7 +29,7 @@ class AddKeyEntity extends KeyEntity {
     private static final byte[] KEY = getBytes("key");
     private static final byte[] BRANCH = getBytes("branch");
     private final CommitData commitData;
-   
+
     private final InputStream data;
 
     public AddKeyEntity(final InputStream is, final CommitData commitData, final MetaData metaData) {
@@ -45,8 +45,11 @@ class AddKeyEntity extends KeyEntity {
             o.write(LEFTBRACKET);
             writeField(KEY, commitData.getKey(), o);
             o.write(COMMA);
-            writeField(BRANCH, commitData.getBranch(), o);
-            o.write(COMMA);
+            String branch = commitData.getBranch();
+            if (branch != null) {
+                writeField(BRANCH, branch, o);
+                o.write(COMMA);
+            }
             writeField(MESSAGE, commitData.getMessage(), o);
             o.write(COMMA);
             writeField(USERINFO, commitData.getUserInfo(), o);

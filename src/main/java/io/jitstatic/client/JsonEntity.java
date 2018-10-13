@@ -104,10 +104,7 @@ abstract class JsonEntity implements HttpEntity {
     }
 
     protected static byte[] getBytes(final String tokens) {
-        if (tokens == null) {
-            return NIL;
-        }
-        return tokens.getBytes(UTF_8);
+        return tokens != null ? tokens.getBytes(UTF_8) : NIL;        
     }
 
     protected void writeBool(byte[] field, boolean value, OutputStream o) throws IOException {

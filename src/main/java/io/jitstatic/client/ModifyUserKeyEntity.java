@@ -22,22 +22,23 @@ package io.jitstatic.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 
 class ModifyUserKeyEntity extends MetaDataEntity {
 
     private final String message;
     private final String userInfo;
     private final String userMail;
-    
+
     public ModifyUserKeyEntity(final ModifyUserKeyData data) {
         super(data.getStorageData());
-        this.message = data.getMessage();
-        this.userInfo = data.getUserInfo();
-        this.userMail = data.getUserMail();        
+        this.message = Objects.requireNonNull(data.getMessage());
+        this.userInfo = Objects.requireNonNull(data.getUserInfo());
+        this.userMail = Objects.requireNonNull(data.getUserMail());
     }
 
     @Override
-    public void writeTo(final OutputStream o) throws IOException {        
+    public void writeTo(final OutputStream o) throws IOException {
         bool.set(true);
         try {
             o.write(LEFTBRACKET);
