@@ -1,5 +1,7 @@
 package io.jitstatic.client;
 
+import java.io.IOException;
+
 /*-
  * #%L
  * jitstatic client
@@ -23,7 +25,9 @@ package io.jitstatic.client;
 import java.net.URI;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
+import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -31,6 +35,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.util.EntityUtils;
 
 class APIHelper {
 
@@ -40,13 +45,14 @@ class APIHelper {
         }
     }
 
-    static void checkPUTStatusCode(final URI uri, final HttpPut putRequest, final StatusLine statusLine) throws APIException {
+    static void checkPUTStatusCode(final URI uri, final HttpPut putRequest, final StatusLine statusLine, final HttpEntity httpEntity)
+            throws ParseException, IOException {
         switch (statusLine.getStatusCode()) {
         case HttpStatus.SC_OK:
         case HttpStatus.SC_ACCEPTED:
             break;
         default:
-            throw new APIException(statusLine, uri.toString(), putRequest.getMethod());
+            throw new APIException(statusLine, uri.toString(), putRequest.getMethod(), httpEntity);
         }
     }
 
@@ -63,24 +69,26 @@ class APIHelper {
         return currentVersion;
     }
 
-    static void checkGETresponse(final URI url, final HttpGet getRequest, final StatusLine statusLine) throws APIException {
+    static void checkGETresponse(final URI url, final HttpGet getRequest, final StatusLine statusLine, final HttpEntity httpEntity)
+            throws ParseException, IOException {
         switch (statusLine.getStatusCode()) {
         case HttpStatus.SC_OK:
         case HttpStatus.SC_ACCEPTED:
         case HttpStatus.SC_NOT_MODIFIED:
             break;
         default:
-            throw new APIException(statusLine, url.toString(), getRequest.getMethod());
+            throw new APIException(statusLine, url.toString(), getRequest.getMethod(), httpEntity);
         }
     }
 
-    static void checkDELETEresponse(final URI url, final HttpDelete request, final StatusLine statusLine) throws APIException {
+    static void checkDELETEresponse(final URI url, final HttpDelete request, final StatusLine statusLine, final HttpEntity httpEntity)
+            throws ParseException, IOException {
         switch (statusLine.getStatusCode()) {
         case HttpStatus.SC_OK:
         case HttpStatus.SC_ACCEPTED:
             break;
         default:
-            throw new APIException(statusLine, url.toString(), request.getMethod());
+            throw new APIException(statusLine, url.toString(), request.getMethod(), httpEntity);
         }
     }
 
@@ -102,15 +110,15 @@ class APIHelper {
         return version;
     }
 
-    public static void checkPOSTresponse(URI url, HttpPost postRequest, StatusLine statusLine) throws APIException {
+    public static void checkPOSTresponse(URI url, HttpPost postRequest, StatusLine statusLine, final HttpEntity httpEntity) throws ParseException, IOException {
         switch (statusLine.getStatusCode()) {
         case HttpStatus.SC_OK:
         case HttpStatus.SC_ACCEPTED:
             break;
         default:
-            throw new APIException(statusLine, url.toString(), postRequest.getMethod());
+            throw new APIException(statusLine, url.toString(), postRequest.getMethod(), httpEntity);
         }
-        
+
     }
 
 }

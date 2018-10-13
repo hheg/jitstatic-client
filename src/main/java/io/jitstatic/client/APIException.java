@@ -2,6 +2,9 @@ package io.jitstatic.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
+
 /*-
  * #%L
  * jitstatic
@@ -23,6 +26,7 @@ import java.io.IOException;
  */
 
 import org.apache.http.StatusLine;
+import org.apache.http.util.EntityUtils;
 
 public class APIException extends IOException {
 
@@ -33,8 +37,8 @@ public class APIException extends IOException {
     private final String url;
     private final String verb;
 
-    APIException(final StatusLine statusLine, final String url, final String verb) {
-        super(String.format("%s %s failed with: %d %s", verb, url, statusLine.getStatusCode(), statusLine.getReasonPhrase()));
+    APIException(final StatusLine statusLine, final String url, final String verb, final HttpEntity body) throws ParseException, IOException {
+        super(String.format("%s %s failed with: %d %s %s", verb, url, statusLine.getStatusCode(), statusLine.getReasonPhrase(), body != null ? EntityUtils.toString(body) : "null"));
         this.statusCode = statusLine.getStatusCode();
         this.reasonPhrase = statusLine.getReasonPhrase();
         this.url = url;
