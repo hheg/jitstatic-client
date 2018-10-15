@@ -40,7 +40,7 @@ class APIHelper {
 
     static void addRefParameter(final String ref, final URIBuilder uriBuilder) {
         if (ref != null) {
-            uriBuilder.addParameter(JitStaticUpdaterClientImpl.REF, ref);
+            uriBuilder.addParameter(JitStaticClientImpl.REF, ref);
         }
     }
 

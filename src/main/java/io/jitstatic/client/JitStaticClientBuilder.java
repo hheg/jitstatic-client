@@ -20,28 +20,41 @@ package io.jitstatic.client;
  * #L%
  */
 
+import java.io.File;
 import java.net.URISyntaxException;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.cache.CacheConfig;
+import org.apache.http.impl.client.cache.CachingHttpClients;
 
-@Deprecated
-public class JitStaticCreatorClientBuilder {
+public class JitStaticClientBuilder {
     private int port = 80;
-    private String scheme = JitStaticCreatorClientImpl.HTTP;
-    private HttpClientBuilder httpClientBuilder;
+    private String scheme = JitStaticClientImpl.HTTP;
+    private CacheConfig cacheConfig;
     private RequestConfig requestConfig;
+    private HttpClientBuilder httpClientBuilder;
     private String host;
     private String appContext;
     private String user;
     private String password;
+    private File cacheDirectory;
+
+    public CacheConfig getCacheConfig() {
+        return cacheConfig;
+    }
+
+    public JitStaticClientBuilder setCacheConfig(final CacheConfig cacheConfig) {
+        this.cacheConfig = cacheConfig;
+        return this;
+    }
 
     public RequestConfig getRequestConfig() {
         return requestConfig;
     }
 
-    public JitStaticCreatorClientBuilder setRequestConfig(final RequestConfig requestConfig) {
+    public JitStaticClientBuilder setRequestConfig(final RequestConfig requestConfig) {
         this.requestConfig = requestConfig;
         return this;
     }
@@ -50,7 +63,7 @@ public class JitStaticCreatorClientBuilder {
         return host;
     }
 
-    public JitStaticCreatorClientBuilder setHost(final String host) {
+    public JitStaticClientBuilder setHost(final String host) {
         this.host = host;
         return this;
     }
@@ -59,7 +72,7 @@ public class JitStaticCreatorClientBuilder {
         return port;
     }
 
-    public JitStaticCreatorClientBuilder setPort(final int port) {
+    public JitStaticClientBuilder setPort(final int port) {
         this.port = port;
         return this;
     }
@@ -68,7 +81,7 @@ public class JitStaticCreatorClientBuilder {
         return scheme;
     }
 
-    public JitStaticCreatorClientBuilder setScheme(final String scheme) {
+    public JitStaticClientBuilder setScheme(final String scheme) {
         this.scheme = scheme;
         return this;
     }
@@ -77,7 +90,7 @@ public class JitStaticCreatorClientBuilder {
         return appContext;
     }
 
-    public JitStaticCreatorClientBuilder setAppContext(final String appContext) {
+    public JitStaticClientBuilder setAppContext(final String appContext) {
         this.appContext = appContext;
         return this;
     }
@@ -86,7 +99,7 @@ public class JitStaticCreatorClientBuilder {
         return user;
     }
 
-    public JitStaticCreatorClientBuilder setUser(final String user) {
+    public JitStaticClientBuilder setUser(final String user) {
         this.user = user;
         return this;
     }
@@ -95,24 +108,37 @@ public class JitStaticCreatorClientBuilder {
         return password;
     }
 
-    public JitStaticCreatorClientBuilder setPassword(final String password) {
+    public JitStaticClientBuilder setPassword(final String password) {
         this.password = password;
         return this;
-    }
-
-    public JitStaticCreatorClient build() throws URISyntaxException {
-        if (httpClientBuilder == null) {
-            httpClientBuilder = HttpClients.custom();
-        }
-        return new JitStaticCreatorClientImpl(host, port, scheme, appContext, user, password, httpClientBuilder, requestConfig);
     }
 
     public HttpClientBuilder getHttpClientBuilder() {
         return httpClientBuilder;
     }
 
-    public JitStaticCreatorClientBuilder setHttpClientBuilder(final HttpClientBuilder httpClientBuilder) {
+    public JitStaticClientBuilder setHttpClientBuilder(final HttpClientBuilder httpClientBuilder) {
         this.httpClientBuilder = httpClientBuilder;
         return this;
+    }
+
+    public JitStaticClient build() throws URISyntaxException {
+        if (httpClientBuilder == null) {
+            if (cacheConfig != null) {
+                httpClientBuilder = CachingHttpClients.custom();
+            } else {
+                httpClientBuilder = HttpClients.custom();
+            }
+        }
+        return new JitStaticClientImpl(host, port, scheme, appContext, user, password, cacheConfig, requestConfig, httpClientBuilder,
+                cacheDirectory);
+    }
+
+    public File getCacheDirectory() {
+        return cacheDirectory;
+    }
+
+    public void setCacheDirectory(final File cacheDirectory) {
+        this.cacheDirectory = cacheDirectory;
     }
 }
