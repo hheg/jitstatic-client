@@ -52,7 +52,7 @@ public class ModifyDataEntityTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"roles\":[]}}",
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"read\":[],\"write\":[]}}",
                 baos.toString("UTF-8"));
     }
 
@@ -65,7 +65,7 @@ public class ModifyDataEntityTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}],\"roles\":[]}}",
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}],\"read\":[],\"write\":[]}}",
                 baos.toString());
     }
     
@@ -77,11 +77,11 @@ public class ModifyDataEntityTest {
         Set<User> users = new HashSet<>();
         users.add(new User("u", "p"));
         List<HeaderPair> list = Arrays.asList(new HeaderPair[] { HeaderPair.of("h", "v") });
-        JsonEntity data = new ModifyUserKeyEntity(new ModifyUserKeyData(new MetaData(users, "application/json", list, roles), "msg", "mail", "ui"));
+        JsonEntity data = new ModifyUserKeyEntity(new ModifyUserKeyData(new MetaData(users, "application/json", list, roles, roles), "msg", "mail", "ui"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}],\"roles\":[{\"role\":\"update\"},{\"role\":\"insert\"}]}}",
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}],\"read\":[{\"role\":\"update\"},{\"role\":\"insert\"}],\"write\":[{\"role\":\"update\"},{\"role\":\"insert\"}]}}",
                 baos.toString());
     }
 }

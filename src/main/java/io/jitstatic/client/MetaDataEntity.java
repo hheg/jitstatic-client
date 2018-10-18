@@ -43,7 +43,8 @@ abstract class MetaDataEntity extends JsonEntity {
     protected static final byte[] USERINFO = getBytes("userInfo");
     protected static final byte[] USERMAIL = getBytes("userMail");
     protected static final byte[] MESSAGE = getBytes("message");
-    protected static final byte[] ROLES = getBytes("roles");
+    protected static final byte[] READ = getBytes("read");
+    protected static final byte[] WRITE = getBytes("write");
     protected static final byte[] ROLE = getBytes("role");
 
     private final MetaData data;
@@ -62,7 +63,7 @@ abstract class MetaDataEntity extends JsonEntity {
             o.write(DOUBLEQUOTE);
             o.write(USERS);
             o.write(DOUBLEQUOTE);
-            o.write(COLON);            
+            o.write(COLON);
             writeUsers(o);
             o.write(COMMA);
             writeField(CONTENTTYPE, data.getContentType(), o);
@@ -74,17 +75,17 @@ abstract class MetaDataEntity extends JsonEntity {
                 o.write(COMMA);
                 writeHeaders(data.getHeaders(), o);
             }
-            if (data.getRoles() != null) {
-                o.write(COMMA);
-                writeRoles(data.getRoles(), o);
-            }
+            o.write(COMMA);
+            writeRoles(READ, data.getRead(), o);
+            o.write(COMMA);
+            writeRoles(WRITE, data.getWrite(), o);
         }
         o.write(RIGHTBRACKET);
     }
 
-    private void writeRoles(Set<Role> roles2, OutputStream o) throws IOException {
+    private void writeRoles(byte[] type, Set<Role> roles2, OutputStream o) throws IOException {
         o.write(DOUBLEQUOTE);
-        o.write(ROLES);
+        o.write(type);
         o.write(DOUBLEQUOTE);
         o.write(COLON);
         o.write(LEFTSQBRACKET);

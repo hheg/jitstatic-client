@@ -35,7 +35,8 @@ public class MetaData {
     private final boolean hidden;
     private final boolean isProtected;
     private final List<HeaderPair> headers;
-    private final Set<Role> roles;
+    private final Set<Role> read;
+    private final Set<Role> write;
 
     public MetaData(final String contenttype) {
         this(new HashSet<>(), contenttype);
@@ -46,17 +47,18 @@ public class MetaData {
     }
 
     public MetaData(final Set<User> users, final String contentType, final boolean isProtected, final boolean hidden, final List<HeaderPair> headers,
-            final Set<Role> roles) {
+            final Set<Role> read, Set<Role> write) {
         this.users = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(users)));
         this.contentType = Objects.requireNonNull(contentType);
         this.isProtected = isProtected;
         this.hidden = hidden;
         this.headers = headers != null ? Collections.unmodifiableList(headers) : null;
-        this.roles = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(roles)));
+        this.read = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(read)));
+        this.write = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(write)));
     }
-
+    @Deprecated
     public MetaData(final Set<User> users, final String contentType, final boolean isProtected, final boolean hidden, final List<HeaderPair> headers) {
-        this(users, contentType, isProtected, hidden, headers, new HashSet<>());
+        this(users, contentType, isProtected, hidden, headers, new HashSet<>(), new HashSet<>());
 
     }
 
@@ -64,14 +66,14 @@ public class MetaData {
         this(users, contentType, false, false, null);
     }
 
-    public MetaData(Set<User> users, String type, List<HeaderPair> headers, Set<Role> roles) {
-        this(users, type, false, false, headers, roles);
+    public MetaData(Set<User> users, String type, List<HeaderPair> headers, Set<Role> read, Set<Role> write) {
+        this(users, type, false, false, headers, read, write);
     }
 
-    public MetaData(Set<User> users, String type, Set<Role> roles) {
-        this(users, type, new ArrayList<>(1), roles);
+    public MetaData(Set<User> users, String type, Set<Role> read, Set<Role> write) {
+        this(users, type, new ArrayList<>(1), read, write);
     }
-    
+    @Deprecated
     public final Set<User> getUsers() {
         return users;
     }
@@ -92,10 +94,14 @@ public class MetaData {
         return headers;
     }
 
-    public Set<Role> getRoles() {
-        return roles;
+    public Set<Role> getRead() {
+        return read;
     }
 
+    public Set<Role> getWrite() {
+        return write;
+    }
+    
     public static final class User {
         private final String user;
         private final String password;
