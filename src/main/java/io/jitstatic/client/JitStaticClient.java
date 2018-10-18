@@ -30,9 +30,9 @@ import org.apache.http.client.ClientProtocolException;
 
 public interface JitStaticClient extends AutoCloseable {
 
-    String createKey(byte[] data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException;
+    String createKey(byte[] data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException, URISyntaxException;
 
-    String createKey(InputStream data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException;
+    String createKey(InputStream data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException, URISyntaxException;
 
     <T> T getMetaKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
             throws ClientProtocolException, URISyntaxException, IOException;

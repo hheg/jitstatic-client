@@ -228,15 +228,16 @@ class JitStaticClientImpl implements JitStaticClient {
     }
 
     @Override
-    @Deprecated
-    public String createKey(byte[] data, CommitData commitData, MetaData metaData) throws IOException, APIException {
+    public String createKey(byte[] data, CommitData commitData, MetaData metaData) throws IOException, APIException, URISyntaxException {
         return createKey(new ByteArrayInputStream(data), commitData, metaData);
     }
 
     @Override
-    @Deprecated
-    public String createKey(InputStream data, CommitData commitData, MetaData metaData) throws IOException, APIException {
-        final HttpPost postRequest = new HttpPost(storageURL);
+    public String createKey(InputStream data, CommitData commitData, MetaData metaData) throws IOException, APIException, URISyntaxException {
+        final URIBuilder uriBuilder = resolve(commitData.getKey(), storageURL);
+        APIHelper.addRefParameter(Utils.checkRef(commitData.getBranch()), uriBuilder);
+        final URI url = uriBuilder.build();     
+        final HttpPost postRequest = new HttpPost(url);
         postRequest.setHeaders(HEADERS);
         if (!APPLICATION_JSON.equals(metaData.getContentType())) {
             postRequest.addHeader(HttpHeaders.ACCEPT, metaData.getContentType());

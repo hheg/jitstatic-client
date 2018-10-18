@@ -42,14 +42,7 @@ class AddKeyEntity extends KeyEntity {
     public void writeTo(final OutputStream o) throws IOException {
         bool.set(true);
         try {
-            o.write(LEFTBRACKET);
-            writeField(KEY, commitData.getKey(), o);
-            o.write(COMMA);
-            String branch = commitData.getBranch();
-            if (branch != null) {
-                writeField(BRANCH, branch, o);
-                o.write(COMMA);
-            }
+            o.write(LEFTBRACKET);            
             writeField(MESSAGE, commitData.getMessage(), o);
             o.write(COMMA);
             writeField(USERINFO, commitData.getUserInfo(), o);
