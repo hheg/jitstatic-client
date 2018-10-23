@@ -26,8 +26,6 @@ import java.util.Arrays;
 
 class AddKeyEntity extends KeyEntity {
 
-    private static final byte[] KEY = getBytes("key");
-    private static final byte[] BRANCH = getBytes("branch");
     private final CommitData commitData;
 
     private final InputStream data;

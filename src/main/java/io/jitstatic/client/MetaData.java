@@ -42,6 +42,7 @@ public class MetaData {
         this(new HashSet<>(), contenttype);
     }
 
+    @Deprecated
     public MetaData(final Set<User> users, final String contentType, final List<HeaderPair> headers) {
         this(users, contentType, false, false, headers);
     }
@@ -56,23 +57,39 @@ public class MetaData {
         this.read = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(read)));
         this.write = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(write)));
     }
+
     @Deprecated
     public MetaData(final Set<User> users, final String contentType, final boolean isProtected, final boolean hidden, final List<HeaderPair> headers) {
         this(users, contentType, isProtected, hidden, headers, new HashSet<>(), new HashSet<>());
-
     }
 
+    @Deprecated
     public MetaData(final Set<User> users, final String contentType) {
         this(users, contentType, false, false, null);
     }
 
-    public MetaData(Set<User> users, String type, List<HeaderPair> headers, Set<Role> read, Set<Role> write) {
+    @Deprecated
+    public MetaData(Set<User> users, final String type, final List<HeaderPair> headers, final Set<Role> read, final Set<Role> write) {
         this(users, type, false, false, headers, read, write);
     }
 
-    public MetaData(Set<User> users, String type, Set<Role> read, Set<Role> write) {
-        this(users, type, new ArrayList<>(1), read, write);
+    @Deprecated
+    public MetaData(Set<User> users, final String type, final Set<Role> read, final Set<Role> write) {
+        this(users, type, new ArrayList<>(0), read, write);
     }
+
+    public MetaData(final String contentType, final Set<Role> read, final Set<Role> write) {
+        this(new HashSet<>(), contentType, read, write);
+    }
+
+    public MetaData(final String type, final List<HeaderPair> headers, final Set<Role> read, final Set<Role> write) {
+        this(new HashSet<>(), type, false, false, headers, read, write);
+    }
+
+    public MetaData(final String type, final boolean isProtected, final boolean hidden, final Set<Role> read, final Set<Role> write) {
+        this(new HashSet<>(), type, isProtected, hidden, new ArrayList<>(0), read, write);
+    }
+
     @Deprecated
     public final Set<User> getUsers() {
         return users;
@@ -101,7 +118,7 @@ public class MetaData {
     public Set<Role> getWrite() {
         return write;
     }
-    
+
     public static final class User {
         private final String user;
         private final String password;

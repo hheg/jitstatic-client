@@ -10,7 +10,7 @@ The client is backed by Apache Http Client and you can use configure it through 
 
 #### To create a key
 ```java
- JitStaticCreatorClient client = JitStaticCreatorClientBuilder.create().setAppContext("/app/")
+ JitStaticClient client = JitStaticClientBuilder.create().setAppContext("/app/")
  	.setHost("localhost").setPort(80).setUser("user").setPassword("pass").setScheme("http")
  	.setHttpClientBuilder(clientBuilderMock).build();
        
@@ -19,7 +19,7 @@ Entity entity = client.createKey(data, new CommitData("master", "key", "message"
 
 #### To get a key
 ```java
-JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppContext("/app/")
+JitStaticClient client = JitStaticClientBuilder.create().setAppContext("/app/")
 	.setHost("localhost").setPort(80).setUser("user").setPassword("pass").setScheme("http")
 	.setHttpClientBuilder(clientBuilderMock).build();
 	
@@ -28,7 +28,7 @@ Enity entity = client.getKey("key", entityFactory);
 
 #### To modify a key
 ```java
-JitStaticUpdaterClient client = JitStaticUpdaterClientBuilder.create().setAppContext("/app/")
+JitStaticClient client = JitStaticClientBuilder.create().setAppContext("/app/")
 	.setHost("localhost").setPort(80).setUser("user").setPassword("pass").setScheme("http")
 	.setHttpClientBuilder(clientBuilderMock).build();
 
@@ -40,7 +40,7 @@ Entity modifiedEntity = client.modifyKey(data, new CommitData("master", "key", "
 
 #### To modify a metadatakey
 ```java
- JitStaticCreatorClient client = JitStaticCreatorClientBuilder.create().setAppContext("/app/")
+ JitStaticClient client = JitStaticClientBuilder.create().setAppContext("/app/")
  	.setHost("localhost").setPort(80).setUser("user").setPassword("pass").setScheme("http")
  	.setHttpClientBuilder(clientBuilderMock).build();
  	

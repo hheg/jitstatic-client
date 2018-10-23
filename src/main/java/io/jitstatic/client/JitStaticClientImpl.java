@@ -207,8 +207,6 @@ class JitStaticClientImpl implements JitStaticClient {
         final URI uri = uriBuilder.build();
         final HttpPut putRequest = new HttpPut(uri);
         putRequest.setHeaders(HEADERS);
-        putRequest.addHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
-        putRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
 
         final HttpClientContext context = getHostContext(target, credentialsProvider);
@@ -239,11 +237,6 @@ class JitStaticClientImpl implements JitStaticClient {
         final URI url = uriBuilder.build();     
         final HttpPost postRequest = new HttpPost(url);
         postRequest.setHeaders(HEADERS);
-        if (!APPLICATION_JSON.equals(metaData.getContentType())) {
-            postRequest.addHeader(HttpHeaders.ACCEPT, metaData.getContentType());
-        }
-        postRequest.addHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
-        postRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         final HttpClientContext context = getHostContext(target, credentialsProvider);
 
         final MetaDataEntity modify = new AddKeyEntity(data, commitData, metaData);
@@ -271,8 +264,6 @@ class JitStaticClientImpl implements JitStaticClient {
         final URI uri = uriBuilder.build();
         final HttpPut putRequest = new HttpPut(uri);
         putRequest.setHeaders(HEADERS);
-        putRequest.addHeader(HttpHeaders.CONTENT_ENCODING, UTF_8);
-        putRequest.addHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
 
         final HttpClientContext context = getHostContext(target, credentialsProvider);
