@@ -44,7 +44,7 @@ abstract class JsonEntity implements HttpEntity {
     protected static final byte[] RIGHTSQBRACKET = getBytes("]");
     private static final byte[] TRUE = getBytes("true");
     private static final byte[] FALSE = getBytes("false");
-    private static final byte[] NIL = new byte[0];
+    protected static final byte[] NIL = new byte[0];
 
     protected final AtomicBoolean bool = new AtomicBoolean(false);
 
@@ -104,10 +104,7 @@ abstract class JsonEntity implements HttpEntity {
     }
 
     protected static byte[] getBytes(final String tokens) {
-        if (tokens == null) {
-            return NIL;
-        }
-        return tokens.getBytes(UTF_8);
+        return tokens != null ? tokens.getBytes(UTF_8) : NIL;        
     }
 
     protected void writeBool(byte[] field, boolean value, OutputStream o) throws IOException {

@@ -1,5 +1,7 @@
 package io.jitstatic.client;
 
+import java.util.ArrayList;
+
 /*-
  * #%L
  * jitstatic
@@ -33,27 +35,62 @@ public class MetaData {
     private final boolean hidden;
     private final boolean isProtected;
     private final List<HeaderPair> headers;
+    private final Set<Role> read;
+    private final Set<Role> write;
 
     public MetaData(final String contenttype) {
         this(new HashSet<>(), contenttype);
     }
 
+    @Deprecated
     public MetaData(final Set<User> users, final String contentType, final List<HeaderPair> headers) {
         this(users, contentType, false, false, headers);
     }
 
-    public MetaData(final Set<User> users, final String contentType, final boolean isProtected, final boolean hidden, final List<HeaderPair> headers) {
+    public MetaData(final Set<User> users, final String contentType, final boolean isProtected, final boolean hidden, final List<HeaderPair> headers,
+            final Set<Role> read, Set<Role> write) {
         this.users = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(users)));
         this.contentType = Objects.requireNonNull(contentType);
         this.isProtected = isProtected;
         this.hidden = hidden;
-        this.headers = headers;
+        this.headers = headers != null ? Collections.unmodifiableList(headers) : null;
+        this.read = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(read)));
+        this.write = Collections.unmodifiableSet(new HashSet<>(Objects.requireNonNull(write)));
     }
 
+    @Deprecated
+    public MetaData(final Set<User> users, final String contentType, final boolean isProtected, final boolean hidden, final List<HeaderPair> headers) {
+        this(users, contentType, isProtected, hidden, headers, new HashSet<>(), new HashSet<>());
+    }
+
+    @Deprecated
     public MetaData(final Set<User> users, final String contentType) {
         this(users, contentType, false, false, null);
     }
 
+    @Deprecated
+    public MetaData(Set<User> users, final String type, final List<HeaderPair> headers, final Set<Role> read, final Set<Role> write) {
+        this(users, type, false, false, headers, read, write);
+    }
+
+    @Deprecated
+    public MetaData(Set<User> users, final String type, final Set<Role> read, final Set<Role> write) {
+        this(users, type, new ArrayList<>(0), read, write);
+    }
+
+    public MetaData(final String contentType, final Set<Role> read, final Set<Role> write) {
+        this(new HashSet<>(), contentType, read, write);
+    }
+
+    public MetaData(final String type, final List<HeaderPair> headers, final Set<Role> read, final Set<Role> write) {
+        this(new HashSet<>(), type, false, false, headers, read, write);
+    }
+
+    public MetaData(final String type, final boolean isProtected, final boolean hidden, final Set<Role> read, final Set<Role> write) {
+        this(new HashSet<>(), type, isProtected, hidden, new ArrayList<>(0), read, write);
+    }
+
+    @Deprecated
     public final Set<User> getUsers() {
         return users;
     }
@@ -72,6 +109,14 @@ public class MetaData {
 
     public List<HeaderPair> getHeaders() {
         return headers;
+    }
+
+    public Set<Role> getRead() {
+        return read;
+    }
+
+    public Set<Role> getWrite() {
+        return write;
     }
 
     public static final class User {
@@ -112,6 +157,43 @@ public class MetaData {
                 if (other.user != null)
                     return false;
             } else if (!user.equals(other.user))
+                return false;
+            return true;
+        }
+    }
+
+    public static class Role {
+        private final String role;
+
+        public Role(final String role) {
+            this.role = role;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((role == null) ? 0 : role.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            Role other = (Role) obj;
+            if (role == null) {
+                if (other.role != null)
+                    return false;
+            } else if (!role.equals(other.role))
                 return false;
             return true;
         }

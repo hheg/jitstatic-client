@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import io.jitstatic.client.MetaData.Role;
 import io.jitstatic.client.MetaData.User;
 
 public class ModifyDataEntityTest {
@@ -51,7 +52,7 @@ public class ModifyDataEntityTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false}}",
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"read\":[],\"write\":[]}}",
                 baos.toString("UTF-8"));
     }
 
@@ -64,7 +65,23 @@ public class ModifyDataEntityTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}]}}",
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}],\"read\":[],\"write\":[]}}",
+                baos.toString());
+    }
+    
+    @Test
+    public void testModifyMetaKeyWithRoles() throws IOException {
+        Set<Role> roles = new HashSet<>();
+        roles.add(new Role("update"));
+        roles.add(new Role("insert"));
+        Set<User> users = new HashSet<>();
+        users.add(new User("u", "p"));
+        List<HeaderPair> list = Arrays.asList(new HeaderPair[] { HeaderPair.of("h", "v") });
+        JsonEntity data = new ModifyUserKeyEntity(new ModifyUserKeyData(new MetaData(users, "application/json", list, roles, roles), "msg", "mail", "ui"));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        data.writeTo(baos);
+        assertEquals(
+                "{\"message\":\"msg\",\"userInfo\":\"ui\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"u\",\"password\":\"p\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[{\"header\":\"h\",\"value\":\"v\"}],\"read\":[{\"role\":\"update\"},{\"role\":\"insert\"}],\"write\":[{\"role\":\"update\"},{\"role\":\"insert\"}]}}",
                 baos.toString());
     }
 }

@@ -30,22 +30,24 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import io.jitstatic.client.MetaData.Role;
 import io.jitstatic.client.MetaData.User;
 
 public class AddKeyEntityTest {
+
+    private static final String UTF_8 = "UTF-8";
 
     @Test
     public void testAddKeyEntity() throws IOException {
         Set<User> users = new HashSet<>();
         users.add(new User("user", "pass"));
         ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] { 1 });
-        JsonEntity data = new AddKeyEntity(bis, new CommitData("key", "master", "msg", "usr", "mail"),
-                new MetaData(users, "application/json"));
+        JsonEntity data = new AddKeyEntity(bis, new CommitData("key", "master", "msg", "usr", "mail"), new MetaData(users, "application/json"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"key\":\"key\",\"branch\":\"refs/heads/master\",\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false},\"data\":\"AQ==\"}",
-                baos.toString("UTF-8"));
+                "{\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"read\":[],\"write\":[]},\"data\":\"AQ==\"}",
+                baos.toString(UTF_8));
     }
 
     @Test
@@ -54,12 +56,26 @@ public class AddKeyEntityTest {
         users.add(new User("user", "pass"));
         users.add(new User("user2", "pass"));
         ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] { 1 });
-        JsonEntity data = new AddKeyEntity(bis, new CommitData("key", "master", "msg", "usr", "mail"),
-                new MetaData(users, "application/json"));
+        JsonEntity data = new AddKeyEntity(bis, new CommitData("key", "master", "msg", "usr", "mail"), new MetaData(users, "application/json"));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         data.writeTo(baos);
         assertEquals(
-                "{\"key\":\"key\",\"branch\":\"refs/heads/master\",\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user2\",\"password\":\"pass\"},{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false},\"data\":\"AQ==\"}",
-                baos.toString("UTF-8"));
+                "{\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[{\"user\":\"user2\",\"password\":\"pass\"},{\"user\":\"user\",\"password\":\"pass\"}],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"read\":[],\"write\":[]},\"data\":\"AQ==\"}",
+                baos.toString(UTF_8));
+    }
+
+    @Test
+    public void testAddkeyWithRoles() throws IOException {
+        Set<Role> read = new HashSet<>();
+        Set<Role> write = new HashSet<>();
+        read.add(new Role("read"));
+        write.add(new Role("write"));
+        ByteArrayInputStream bis = new ByteArrayInputStream(new byte[] { 1 });
+        JsonEntity data = new AddKeyEntity(bis, new CommitData("key", "master", "msg", "usr", "mail"), new MetaData("application/json", read, write));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        data.writeTo(baos);
+        assertEquals(
+                "{\"message\":\"msg\",\"userInfo\":\"usr\",\"userMail\":\"mail\",\"metaData\":{\"users\":[],\"contentType\":\"application/json\",\"protected\":false,\"hidden\":false,\"headers\":[],\"read\":[{\"role\":\"read\"}],\"write\":[{\"role\":\"write\"}]},\"data\":\"AQ==\"}",
+                baos.toString(UTF_8));
     }
 }

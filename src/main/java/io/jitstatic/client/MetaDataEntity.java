@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Set;
 
+import io.jitstatic.client.MetaData.Role;
 import io.jitstatic.client.MetaData.User;
 
 abstract class MetaDataEntity extends JsonEntity {
@@ -42,10 +43,14 @@ abstract class MetaDataEntity extends JsonEntity {
     protected static final byte[] USERINFO = getBytes("userInfo");
     protected static final byte[] USERMAIL = getBytes("userMail");
     protected static final byte[] MESSAGE = getBytes("message");
-    
-    private final MetaData metaData;
+    protected static final byte[] READ = getBytes("read");
+    protected static final byte[] WRITE = getBytes("write");
+    protected static final byte[] ROLE = getBytes("role");
+
+    private final MetaData data;
+
     public MetaDataEntity(final MetaData data) {
-        this.metaData = data;
+        this.data = data;
     }
 
     protected void writeMetaDataField(final OutputStream o) throws IOException {
@@ -54,26 +59,45 @@ abstract class MetaDataEntity extends JsonEntity {
         o.write(DOUBLEQUOTE);
         o.write(COLON);
         o.write(LEFTBRACKET);
-        if (metaData != null) {
+        if (data != null) {
             o.write(DOUBLEQUOTE);
             o.write(USERS);
             o.write(DOUBLEQUOTE);
             o.write(COLON);
-            o.write(LEFTSQBRACKET);
             writeUsers(o);
-            o.write(RIGHTSQBRACKET);
             o.write(COMMA);
-            writeField(CONTENTTYPE, metaData.getContentType(), o);
+            writeField(CONTENTTYPE, data.getContentType(), o);
             o.write(COMMA);
-            writeBool(PROTECTED, metaData.isProtected(), o);
+            writeBool(PROTECTED, data.isProtected(), o);
             o.write(COMMA);
-            writeBool(HIDDEN, metaData.isHidden(), o);
-            if (metaData.getHeaders() != null) {
+            writeBool(HIDDEN, data.isHidden(), o);
+            if (data.getHeaders() != null) {
                 o.write(COMMA);
-                writeHeaders(metaData.getHeaders(), o);
+                writeHeaders(data.getHeaders(), o);
             }
+            o.write(COMMA);
+            writeRoles(READ, data.getRead(), o);
+            o.write(COMMA);
+            writeRoles(WRITE, data.getWrite(), o);
         }
         o.write(RIGHTBRACKET);
+    }
+
+    private void writeRoles(byte[] type, Set<Role> roles2, OutputStream o) throws IOException {
+        o.write(DOUBLEQUOTE);
+        o.write(type);
+        o.write(DOUBLEQUOTE);
+        o.write(COLON);
+        o.write(LEFTSQBRACKET);
+        byte[] b = NIL;
+        for (Role r : roles2) {
+            o.write(b);
+            o.write(LEFTBRACKET);
+            writeField(ROLE, r.getRole(), o);
+            o.write(RIGHTBRACKET);
+            b = COMMA;
+        }
+        o.write(RIGHTSQBRACKET);
     }
 
     private void writeHeaders(List<HeaderPair> headers, OutputStream o) throws IOException {
@@ -82,7 +106,7 @@ abstract class MetaDataEntity extends JsonEntity {
         o.write(DOUBLEQUOTE);
         o.write(COLON);
         o.write(LEFTSQBRACKET);
-        byte[] b = new byte[0];
+        byte[] b = NIL;
         for (HeaderPair hp : headers) {
             o.write(b);
             o.write(LEFTBRACKET);
@@ -96,16 +120,18 @@ abstract class MetaDataEntity extends JsonEntity {
     }
 
     private void writeUsers(final OutputStream o) throws IOException {
-        final Set<User> users = metaData.getUsers();
-        byte[] b = new byte[0];
+        final Set<User> users = data.getUsers();
+        byte[] b = NIL;
+        o.write(LEFTSQBRACKET);
         for (User user : users) {
             o.write(b);
             o.write(LEFTBRACKET);
-            writeField(MetaDataEntity.USER, user.getUser(), o);
+            writeField(USER, user.getUser(), o);
             o.write(COMMA);
             writeField(PASSWORD, user.getPassword(), o);
             o.write(RIGHTBRACKET);
             b = COMMA;
         }
+        o.write(RIGHTSQBRACKET);
     }
 }

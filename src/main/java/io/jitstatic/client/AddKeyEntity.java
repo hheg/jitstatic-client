@@ -26,10 +26,8 @@ import java.util.Arrays;
 
 class AddKeyEntity extends KeyEntity {
 
-    private static final byte[] KEY = getBytes("key");
-    private static final byte[] BRANCH = getBytes("branch");
     private final CommitData commitData;
-   
+
     private final InputStream data;
 
     public AddKeyEntity(final InputStream is, final CommitData commitData, final MetaData metaData) {
@@ -42,11 +40,7 @@ class AddKeyEntity extends KeyEntity {
     public void writeTo(final OutputStream o) throws IOException {
         bool.set(true);
         try {
-            o.write(LEFTBRACKET);
-            writeField(KEY, commitData.getKey(), o);
-            o.write(COMMA);
-            writeField(BRANCH, commitData.getBranch(), o);
-            o.write(COMMA);
+            o.write(LEFTBRACKET);            
             writeField(MESSAGE, commitData.getMessage(), o);
             o.write(COMMA);
             writeField(USERINFO, commitData.getUserInfo(), o);
