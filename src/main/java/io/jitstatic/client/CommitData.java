@@ -35,7 +35,7 @@ public class CommitData {
     }
 
     public CommitData(final String key, final String branch, final String message, final String userInfo, final String userMail) {
-        this.branch = Utils.checkBranch(branch);
+        this.branch = Utils.checkRef(branch);
         this.key = Objects.requireNonNull(key);
         this.message = Objects.requireNonNull(message);
         this.user = Objects.requireNonNull(userInfo);

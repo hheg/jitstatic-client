@@ -26,21 +26,19 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.http.client.ClientProtocolException;
-
 public interface JitStaticClient extends AutoCloseable {
 
-    String createKey(byte[] data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException, URISyntaxException;
+    String createKey(byte[] data, CommitData commitData, MetaData metaData) throws  IOException, APIException, URISyntaxException;
 
-    String createKey(InputStream data, CommitData commitData, MetaData metaData) throws ClientProtocolException, IOException, APIException, URISyntaxException;
+    String createKey(InputStream data, CommitData commitData, MetaData metaData) throws  IOException, APIException, URISyntaxException;
 
     <T> T getMetaKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
-            throws ClientProtocolException, URISyntaxException, IOException;
+            throws  URISyntaxException, IOException;
 
     <T> T getMetaKey(String key, String ref, String version, TriFunction<InputStream, String, String, T> entityFactory)
-            throws URISyntaxException, ClientProtocolException, IOException;
+            throws URISyntaxException,  IOException;
 
-    String modifyMetaKey(String key, String ref, String version, ModifyUserKeyData data) throws ClientProtocolException, IOException, URISyntaxException;
+    String modifyMetaKey(String key, String ref, String version, ModifyUserKeyData data) throws  IOException, URISyntaxException;
 
     String modifyKey(byte[] data, CommitData commitData, String version) throws URISyntaxException, IOException, APIException;
 
@@ -71,6 +69,22 @@ public interface JitStaticClient extends AutoCloseable {
     <T> T search(List<BulkSearch> search, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
     void delete(CommitData commitData) throws URISyntaxException, APIException, IOException;
+
+    <T> T getUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory) throws  URISyntaxException, IOException;
+
+    String addUser(String user, String ref, UserData data) throws  URISyntaxException, IOException;
+
+    String modifyUser(String user, String ref, UserData data, String currentVersion) throws  URISyntaxException, IOException;
+
+    void deleteUser(String user, String ref) throws  URISyntaxException, IOException;
+
+    <T> T getAdminUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory) throws  URISyntaxException, IOException;
+
+    String addAdminUser(String user, String ref, UserData data) throws  URISyntaxException, IOException;
+
+    String modifyAdminUser(String user, String ref, UserData data, String currentVersion) throws  URISyntaxException, IOException;
+
+    void deleteAdminUser(String user, String ref) throws  URISyntaxException, IOException;
 
     void close();
 

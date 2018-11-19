@@ -59,6 +59,8 @@ import org.apache.http.message.BasicHeader;
 
 class JitStaticClientImpl implements JitStaticClient {
 
+    private static final String ENTITY_FACTORY_CANNOT_BE_NULL = "entityFactory cannot be null";
+    private static final String KEY_CANNOT_BE_NULL = "key cannot be null";
     protected static final String HTTPS = "https";
     protected static final String BULK = "bulk/";
 
@@ -67,6 +69,10 @@ class JitStaticClientImpl implements JitStaticClient {
     protected static final String APPLICATION_JSON = "application/json";
     protected static final String JITSTATIC_METAKEY_ENDPOINT = "metakey/";
     protected static final String JITSTATIC_STORAGE_ENDPOINT = "storage/";
+    protected static final String JITSTATIC_USERS_ENDPOINT = "users/";
+    protected static final String JITSTATIC_KEYADMIN_ENDPOINT = "keyadmin/";
+    protected static final String JITSTATIC_KEYUSER_ENDPOINT = "keyuser/";
+
     protected static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
             new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"), new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
             new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"), new BasicHeader(HttpHeaders.USER_AGENT,
@@ -82,6 +88,8 @@ class JitStaticClientImpl implements JitStaticClient {
     protected final URI bulkURL;
     protected final CredentialsProvider credentialsProvider;
     protected final HttpHost target;
+    private final URI keyUserURL;
+    private final URI keyAdminURL;
 
     JitStaticClientImpl(final String host, final int port, final String scheme, final String appContext, final String user, final String password,
             final CacheConfig cacheConfig, final RequestConfig requestConfig, final HttpClientBuilder httpClientBuilder, final File cacheDir)
@@ -131,7 +139,10 @@ class JitStaticClientImpl implements JitStaticClient {
         this.bulkURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(BULK);
         this.storageURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_STORAGE_ENDPOINT);
         this.metakeyURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_METAKEY_ENDPOINT);
-
+        this.keyUserURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_USERS_ENDPOINT)
+                .resolve(JITSTATIC_KEYUSER_ENDPOINT);
+        this.keyAdminURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_USERS_ENDPOINT)
+                .resolve(JITSTATIC_KEYADMIN_ENDPOINT);
     }
 
     @Deprecated
@@ -169,53 +180,17 @@ class JitStaticClientImpl implements JitStaticClient {
     @Override
     public <T> T getMetaKey(final String key, final String ref, final String currentVersion, final TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, IOException {
-        Objects.requireNonNull(key, "key cannot be null");
-        Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
-
-        final URIBuilder uriBuilder = resolve(key, metakeyURL);
-        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
-        final URI url = uriBuilder.build();
-        final HttpGet getRequest = new HttpGet(url);
-        getRequest.setHeaders(HEADERS);
-        if (currentVersion != null) {
-            getRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.escapeVersion(currentVersion));
-        }
-        final HttpClientContext context = getHostContext(target, credentialsProvider);
-        try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
-            final StatusLine statusLine = httpResponse.getStatusLine();
-            APIHelper.checkGETresponse(url, getRequest, statusLine, httpResponse.getEntity());
-            final String etagValue = APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
-            final String contentType = APIHelper.getSingleHeader(httpResponse, HttpHeaders.CONTENT_TYPE);
-            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
-                return entityFactory.apply(null, etagValue, contentType);
-            } else {
-                try (final InputStream content = httpResponse.getEntity().getContent()) {
-                    return entityFactory.apply(content, etagValue, contentType);
-                }
-            }
-        }
+        Objects.requireNonNull(key, KEY_CANNOT_BE_NULL);
+        Objects.requireNonNull(entityFactory, ENTITY_FACTORY_CANNOT_BE_NULL);
+        return getKey(key, ref, currentVersion, metakeyURL, entityFactory);
     }
 
     @Override
     public String modifyMetaKey(final String key, final String ref, final String version, final ModifyUserKeyData data) throws IOException, URISyntaxException {
         Objects.requireNonNull(data, "data cannot be null");
-        Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(version, "version cannot be null");
-
-        final URIBuilder uriBuilder = resolve(key, metakeyURL);
-        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
-        final URI uri = uriBuilder.build();
-        final HttpPut putRequest = new HttpPut(uri);
-        putRequest.setHeaders(HEADERS);
-        putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
-
-        final HttpClientContext context = getHostContext(target, credentialsProvider);
-        putRequest.setEntity(new ModifyUserKeyEntity(data));
-        try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
-            final StatusLine statusLine = httpResponse.getStatusLine();
-            APIHelper.checkPUTStatusCode(uri, putRequest, statusLine, httpResponse.getEntity());
-            return APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
-        }
+        ModifyUserKeyEntity entity = new ModifyUserKeyEntity(data);
+        return modifyKey(key, ref, version, metakeyURL, entity);
     }
 
     protected URIBuilder resolve(final String key, URI url) {
@@ -232,20 +207,11 @@ class JitStaticClientImpl implements JitStaticClient {
 
     @Override
     public String createKey(InputStream data, CommitData commitData, MetaData metaData) throws IOException, APIException, URISyntaxException {
-        final URIBuilder uriBuilder = resolve(commitData.getKey(), storageURL);
-        APIHelper.addRefParameter(Utils.checkRef(commitData.getBranch()), uriBuilder);
-        final URI url = uriBuilder.build();     
-        final HttpPost postRequest = new HttpPost(url);
-        postRequest.setHeaders(HEADERS);
-        final HttpClientContext context = getHostContext(target, credentialsProvider);
+        Objects.requireNonNull(commitData);
+        Objects.requireNonNull(metaData);
 
-        final MetaDataEntity modify = new AddKeyEntity(data, commitData, metaData);
-        postRequest.setEntity(modify);
-        try (final CloseableHttpResponse httpResponse = client.execute(postRequest, context)) {
-            final StatusLine statusLine = httpResponse.getStatusLine();
-            checkPOStStatusCode(postRequest, statusLine, httpResponse.getEntity());
-            return APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
-        }
+        final MetaDataEntity entity = new AddKeyEntity(data, commitData, metaData);
+        return addKey(commitData.getKey(), commitData.getBranch(), storageURL, entity);
     }
 
     @Override
@@ -256,24 +222,9 @@ class JitStaticClientImpl implements JitStaticClient {
     @Override
     public String modifyKey(final InputStream data, final CommitData commitData, final String version) throws URISyntaxException, IOException, APIException {
         Objects.requireNonNull(commitData, "commitData cannot be null");
-        Objects.requireNonNull(data, "data cannot be null");
         Objects.requireNonNull(version, "version cannot be null");
-
-        final URIBuilder uriBuilder = resolve(commitData.getKey(), storageURL);
-        APIHelper.addRefParameter(commitData.getBranch(), uriBuilder);
-        final URI uri = uriBuilder.build();
-        final HttpPut putRequest = new HttpPut(uri);
-        putRequest.setHeaders(HEADERS);
-        putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
-
-        final HttpClientContext context = getHostContext(target, credentialsProvider);
         final JsonEntity modify = new ModifyKeyEntity(data, commitData.getMessage(), commitData.getUserInfo(), commitData.getUserMail());
-        putRequest.setEntity(modify);
-        try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
-            final StatusLine statusLine = httpResponse.getStatusLine();
-            APIHelper.checkPUTStatusCode(uri, putRequest, statusLine, httpResponse.getEntity());
-            return APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
-        }
+        return modifyKey(commitData.getKey(), commitData.getBranch(), version, storageURL, modify);
     }
 
     @Override
@@ -297,31 +248,7 @@ class JitStaticClientImpl implements JitStaticClient {
     @Override
     public <T> T getKey(final String key, final String ref, final String currentVersion, final TriFunction<InputStream, String, String, T> entityFactory)
             throws URISyntaxException, IOException, APIException {
-        Objects.requireNonNull(key, "key cannot be null");
-        Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
-
-        final URIBuilder uriBuilder = resolve(key, storageURL);
-        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
-        final URI url = uriBuilder.build();
-        final HttpGet getRequest = new HttpGet(url);
-        getRequest.setHeaders(HEADERS);
-        if (currentVersion != null) {
-            getRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.escapeVersion(currentVersion));
-        }
-        final HttpClientContext context = getHostContext(target, credentialsProvider);
-        try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
-            final StatusLine statusLine = httpResponse.getStatusLine();
-            APIHelper.checkGETresponse(url, getRequest, statusLine, httpResponse.getEntity());
-            final String etagValue = APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
-            final String contentType = APIHelper.getSingleHeader(httpResponse, HttpHeaders.CONTENT_TYPE);
-            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
-                return entityFactory.apply(null, etagValue, contentType);
-            } else {
-                try (final InputStream content = httpResponse.getEntity().getContent()) {
-                    return entityFactory.apply(content, etagValue, contentType);
-                }
-            }
-        }
+        return getKey(key, ref, currentVersion, storageURL, entityFactory);
     }
 
     public <T> T listAll(final String key, final Function<InputStream, T> entityFactory) throws URISyntaxException, IOException {
@@ -351,8 +278,8 @@ class JitStaticClientImpl implements JitStaticClient {
 
     public <T> T listAll(final String key, final String ref, final boolean recursive, final boolean light, final Function<InputStream, T> entityFactory)
             throws URISyntaxException, IOException {
-        Objects.requireNonNull(key, "key cannot be null");
-        Objects.requireNonNull(entityFactory, "entityFactory cannot be null");
+        Objects.requireNonNull(key, KEY_CANNOT_BE_NULL);
+        Objects.requireNonNull(entityFactory, ENTITY_FACTORY_CANNOT_BE_NULL);
         if (!key.endsWith("/")) {
             throw new IllegalArgumentException(String.format("%s must end with / to be able to perform list operation", key));
         }
@@ -412,6 +339,133 @@ class JitStaticClientImpl implements JitStaticClient {
         deleteRequest.addHeader("X-jitstatic-name", commitData.getUserInfo());
         deleteRequest.addHeader("X-jitstatic-message", commitData.getMessage());
         deleteRequest.addHeader("X-jitstatic-mail", commitData.getUserMail());
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
+        try (final CloseableHttpResponse httpResponse = client.execute(deleteRequest, context)) {
+            final StatusLine statusLine = httpResponse.getStatusLine();
+            APIHelper.checkDELETEresponse(url, deleteRequest, statusLine, httpResponse.getEntity());
+        }
+    }
+
+    @Override
+    public String modifyUser(String user, String ref, UserData data, String currentVersion) throws URISyntaxException, IOException {
+        return modifyKey(user, ref, currentVersion, keyUserURL, new UserDataEntity(data));
+    }
+
+    @Override
+    public <T> T getUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, IOException {
+        return getKey(user, ref, currentVersion, keyUserURL, entityFactory);
+    }
+
+    @Override
+    public String addUser(String user, String ref, UserData data) throws URISyntaxException, IOException {
+        return addKey(user, ref, keyUserURL, new UserDataEntity(data));
+    }
+
+    @Override
+    public void deleteUser(String user, String ref) throws URISyntaxException, IOException {
+        deleteUser(user, ref, keyUserURL);
+    }
+
+    @Override
+    public <T> T getAdminUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, IOException {
+        return getKey(user, ref, currentVersion, keyAdminURL, entityFactory);
+    }
+
+    @Override
+    public String addAdminUser(String user, String ref, UserData data) throws URISyntaxException, IOException {
+        return addKey(user, ref, keyAdminURL, new UserDataEntity(data));
+    }
+
+    @Override
+    public String modifyAdminUser(String user, String ref, UserData data, String currentVersion)
+            throws URISyntaxException, IOException {
+        return modifyKey(user, ref, currentVersion, keyAdminURL, new UserDataEntity(data));
+    }
+
+    @Override
+    public void deleteAdminUser(String user, String ref) throws URISyntaxException, IOException {
+        deleteUser(user, ref, keyAdminURL);
+    }
+
+    private String modifyKey(String key, String ref, String version, URI realm, HttpEntity entity)
+            throws URISyntaxException, IOException {
+        Objects.requireNonNull(key, KEY_CANNOT_BE_NULL);
+        Objects.requireNonNull(entity, "entity cannot be null");
+        Objects.requireNonNull(version, "version cannot be null");
+
+        final URIBuilder uriBuilder = resolve(key, realm);
+        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
+        final URI uri = uriBuilder.build();
+        final HttpPut putRequest = new HttpPut(uri);
+        putRequest.setHeaders(HEADERS);
+        putRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.checkVersion(version));
+
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
+        putRequest.setEntity(entity);
+        try (final CloseableHttpResponse httpResponse = client.execute(putRequest, context)) {
+            final StatusLine statusLine = httpResponse.getStatusLine();
+            APIHelper.checkPUTStatusCode(uri, putRequest, statusLine, httpResponse.getEntity());
+            return APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
+        }
+    }
+
+    private String addKey(String key, String ref, URI realm, HttpEntity entity) throws URISyntaxException, IOException {
+        Objects.requireNonNull(key, KEY_CANNOT_BE_NULL);
+        Objects.requireNonNull(entity, "entity cannot be null");
+
+        final URIBuilder uriBuilder = resolve(key, realm);
+        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
+        final URI url = uriBuilder.build();
+        final HttpPost postRequest = new HttpPost(url);
+        postRequest.setHeaders(HEADERS);
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
+
+        postRequest.setEntity(entity);
+        try (final CloseableHttpResponse httpResponse = client.execute(postRequest, context)) {
+            final StatusLine statusLine = httpResponse.getStatusLine();
+            checkPOStStatusCode(postRequest, statusLine, httpResponse.getEntity());
+            return APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
+        }
+    }
+
+    private <T> T getKey(String key, String ref, String currentVersion, URI realm, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, IOException {
+        Objects.requireNonNull(key, KEY_CANNOT_BE_NULL);
+        Objects.requireNonNull(entityFactory, ENTITY_FACTORY_CANNOT_BE_NULL);
+        Objects.requireNonNull(realm, "realm cannot be null");
+
+        final URIBuilder uriBuilder = resolve(key, realm);
+        APIHelper.addRefParameter(Utils.checkRef(ref), uriBuilder);
+        final URI url = uriBuilder.build();
+        final HttpGet getRequest = new HttpGet(url);
+        getRequest.setHeaders(HEADERS);
+        if (currentVersion != null) {
+            getRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.escapeVersion(currentVersion));
+        }
+        final HttpClientContext context = getHostContext(target, credentialsProvider);
+        try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
+            final StatusLine statusLine = httpResponse.getStatusLine();
+            APIHelper.checkGETresponse(url, getRequest, statusLine, httpResponse.getEntity());
+            final String etagValue = APIHelper.getSingleHeader(httpResponse, HttpHeaders.ETAG);
+            final String contentType = APIHelper.getSingleHeader(httpResponse, HttpHeaders.CONTENT_TYPE);
+            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+                return entityFactory.apply(null, etagValue, contentType);
+            } else {
+                try (final InputStream content = httpResponse.getEntity().getContent()) {
+                    return entityFactory.apply(content, etagValue, contentType);
+                }
+            }
+        }
+    }
+
+    private void deleteUser(String user, String ref2, URI realm) throws URISyntaxException, IOException {
+        final URIBuilder uriBuilder = resolve(user, realm);
+        APIHelper.addRefParameter(Utils.checkRef(ref2), uriBuilder);
+        final URI url = uriBuilder.build();
+        final HttpDelete deleteRequest = new HttpDelete(url);
+        deleteRequest.setHeaders(HEADERS);
         final HttpClientContext context = getHostContext(target, credentialsProvider);
         try (final CloseableHttpResponse httpResponse = client.execute(deleteRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
