@@ -22,18 +22,14 @@ package io.jitstatic.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 
 class AddKeyEntity extends KeyEntity {
 
     private final CommitData commitData;
-
-    private final InputStream data;
-
+    
     public AddKeyEntity(final InputStream is, final CommitData commitData, final MetaData metaData) {
-        super(metaData);
+        super(metaData, is);
         this.commitData = commitData;
-        this.data = is;
     }
 
     @Override
@@ -54,19 +50,5 @@ class AddKeyEntity extends KeyEntity {
         } finally {
             bool.set(false);
         }
-    }
-
-    @Override
-    protected void writeData(final OutputStream o) throws IOException {
-        int read = 0;
-        byte[] buf = new byte[4096];
-        while ((read = data.read(buf)) != -1) {
-            if (read != buf.length) {
-                buf = Arrays.copyOf(buf, read);
-            }
-            byte[] encode = ENCODER.encode(buf);
-            o.write(encode, 0, encode.length);
-        }
-
     }
 }
