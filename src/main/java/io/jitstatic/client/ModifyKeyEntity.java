@@ -23,18 +23,15 @@ package io.jitstatic.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 
-class ModifyKeyEntity extends KeyEntity {
+public class ModifyKeyEntity extends KeyEntity {
 
     private final String message;
-    private final InputStream data;
     private final String userMail;
     private final String userInfo;
     
     public ModifyKeyEntity(final InputStream data, final String message, final String userInfo, final String userMail) {
-        super(null);
-        this.data = data;
+        super(null, data);
         this.message = message;
         this.userInfo = userInfo;
         this.userMail = userMail;
@@ -55,18 +52,6 @@ class ModifyKeyEntity extends KeyEntity {
             o.write(RIGHTBRACKET);
         } finally {
             bool.set(false);
-        }
-    }
-
-    protected void writeData(final OutputStream o) throws IOException {
-        int read = 0;
-        byte[] buf = new byte[4096];
-        while ((read = data.read(buf)) != -1) {
-            if(read != buf.length) {
-                buf = Arrays.copyOf(buf, read);
-            }
-            byte[] encode = ENCODER.encode(buf);
-            o.write(encode, 0, encode.length);                
         }
     }
 }

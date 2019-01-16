@@ -21,20 +21,27 @@ package io.jitstatic.client;
  */
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 
+import org.apache.commons.codec.binary.Base64OutputStream;
+
 abstract class KeyEntity extends MetaDataEntity {
 
-    public KeyEntity(final MetaData data) {
+    private final InputStream dataStream;
+    private static final byte[] CHUNK_SEPARATOR = { '\r', '\n' };
+
+    public KeyEntity(final MetaData data, InputStream dataStream) {
         super(data);
+        this.dataStream = dataStream;
     }
 
     private static final byte[] DATA = getBytes("data");
 
     protected static final Encoder ENCODER = Base64.getEncoder();
-    
+
     protected void writeDataField(final OutputStream o) throws IOException {
         o.write(DOUBLEQUOTE);
         o.write(DATA);
@@ -45,6 +52,14 @@ abstract class KeyEntity extends MetaDataEntity {
         o.write(DOUBLEQUOTE);
     }
 
-    protected abstract void writeData(final OutputStream o) throws IOException;
+    protected void writeData(final OutputStream o) throws IOException {
+        int read = 0;
+        byte[] buf = new byte[4096];
+        try (Base64OutputStream b64 = new Base64OutputStream(new NoCloseWrappingOutputStream(o), true, -1, CHUNK_SEPARATOR);) {
+            while ((read = dataStream.read(buf)) != -1) {
+                b64.write(buf, 0, read);
+            }
+        }
+    }
 
 }
