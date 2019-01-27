@@ -30,12 +30,16 @@ import io.jitstatic.client.MetaData.Role;
 public class UserData {
 
     private final String basicPassword;
-    
+
     private final Set<Role> roles;
-    
+
+    public UserData(final Set<Role> roles) {
+        this(roles, null);
+    }
+
     public UserData(final Set<Role> roles, final String basicPassword) {
         this.roles = Collections.unmodifiableSet(Objects.requireNonNull(new HashSet<>(roles)));
-        this.basicPassword = Objects.requireNonNull(basicPassword);
+        this.basicPassword = basicPassword;
     }
 
     public String getBasicPassword() {
