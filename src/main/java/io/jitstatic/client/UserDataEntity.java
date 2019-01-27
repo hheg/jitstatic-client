@@ -54,8 +54,10 @@ class UserDataEntity extends JsonEntity {
             b = COMMA;
         }
         o.write(RIGHTSQBRACKET);
-        o.write(COMMA);
-        writeField(BASICPWD, userData.getBasicPassword(), o);
+        if (userData.getBasicPassword() != null) {
+            o.write(COMMA);
+            writeField(BASICPWD, userData.getBasicPassword(), o);
+        }
         o.write(RIGHTBRACKET);
     }
 

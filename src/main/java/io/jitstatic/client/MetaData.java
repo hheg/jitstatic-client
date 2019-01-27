@@ -166,7 +166,7 @@ public class MetaData {
         private final String role;
 
         public Role(final String role) {
-            this.role = role;
+            this.role = Objects.requireNonNull(role);
         }
 
         public String getRole() {
