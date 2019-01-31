@@ -28,17 +28,17 @@ import java.util.function.Function;
 
 public interface JitStaticClient extends AutoCloseable {
 
-    String createKey(byte[] data, CommitData commitData, MetaData metaData) throws  IOException, APIException, URISyntaxException;
+    String createKey(byte[] data, CommitData commitData, MetaData metaData) throws IOException, APIException, URISyntaxException;
 
-    String createKey(InputStream data, CommitData commitData, MetaData metaData) throws  IOException, APIException, URISyntaxException;
+    String createKey(InputStream data, CommitData commitData, MetaData metaData) throws IOException, APIException, URISyntaxException;
 
     <T> T getMetaKey(String key, String ref, TriFunction<InputStream, String, String, T> entityFactory)
-            throws  URISyntaxException, IOException;
+            throws URISyntaxException, IOException;
 
     <T> T getMetaKey(String key, String ref, String version, TriFunction<InputStream, String, String, T> entityFactory)
-            throws URISyntaxException,  IOException;
+            throws URISyntaxException, IOException;
 
-    String modifyMetaKey(String key, String ref, String version, ModifyUserKeyData data) throws  IOException, URISyntaxException;
+    String modifyMetaKey(String key, String ref, String version, ModifyUserKeyData data) throws IOException, URISyntaxException;
 
     String modifyKey(byte[] data, CommitData commitData, String version) throws URISyntaxException, IOException, APIException;
 
@@ -70,26 +70,38 @@ public interface JitStaticClient extends AutoCloseable {
 
     void delete(CommitData commitData) throws URISyntaxException, APIException, IOException;
 
-    <T> T getUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory) throws  URISyntaxException, IOException;
+    <T> T getUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, IOException;
 
-    String addUser(String user, String ref, UserData data) throws  URISyntaxException, IOException;
+    String addUser(String user, String ref, UserData data) throws URISyntaxException, IOException;
 
-    String modifyUser(String user, String ref, UserData data, String currentVersion) throws  URISyntaxException, IOException;
+    String modifyUser(String user, String ref, UserData data, String currentVersion) throws URISyntaxException, IOException;
 
-    void deleteUser(String user, String ref) throws  URISyntaxException, IOException;
+    void deleteUser(String user, String ref) throws URISyntaxException, IOException;
 
-    <T> T getAdminUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory) throws  URISyntaxException, IOException;
+    <T> T getAdminUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, IOException;
 
-    String addAdminUser(String user, String ref, UserData data) throws  URISyntaxException, IOException;
+    String addAdminUser(String user, String ref, UserData data) throws URISyntaxException, IOException;
 
-    String modifyAdminUser(String user, String ref, UserData data, String currentVersion) throws  URISyntaxException, IOException;
+    String modifyAdminUser(String user, String ref, UserData data, String currentVersion) throws URISyntaxException, IOException;
 
-    void deleteAdminUser(String user, String ref) throws  URISyntaxException, IOException;
+    void deleteAdminUser(String user, String ref) throws URISyntaxException, IOException;
 
     void close();
+
+    <T> T getGitUser(String gituserfull, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, IOException;
+
+    <T> T getGitUser(String gituserfull, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, IOException;
+
+    String addGitUser(String user, UserData userData) throws URISyntaxException, IOException;
+
+    String modifyGitUser(String user, UserData userData, String currentVersion) throws URISyntaxException, IOException;
+
+    void deleteGitUser(String user) throws URISyntaxException, IOException;
 
     static JitStaticClientBuilder create() {
         return new JitStaticClientBuilder();
     }
-
 }
