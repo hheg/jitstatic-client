@@ -72,10 +72,14 @@ class JitStaticClientImpl implements JitStaticClient {
     protected static final String JITSTATIC_USERS_ENDPOINT = "users/";
     protected static final String JITSTATIC_KEYADMIN_ENDPOINT = "keyadmin/";
     protected static final String JITSTATIC_KEYUSER_ENDPOINT = "keyuser/";
+    protected static final String JITSTATIC_GITUSER_ENDPOINT = "git/";
 
-    protected static final Header[] HEADERS = new Header[] { new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
-            new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"), new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
-            new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"), new BasicHeader(HttpHeaders.USER_AGENT,
+    protected static final Header[] HEADERS = new Header[] {
+            new BasicHeader(HttpHeaders.ACCEPT, APPLICATION_JSON),
+            new BasicHeader(HttpHeaders.ACCEPT, "*/*;q=0.8"),
+            new BasicHeader(HttpHeaders.ACCEPT_CHARSET, UTF_8),
+            new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "deflate, gzip;q=1.0, *;q=0.5"),
+            new BasicHeader(HttpHeaders.USER_AGENT,
                     String.format("jitstatic-client_%s-%s", ProjectVersion.INSTANCE.getBuildVersion(), ProjectVersion.INSTANCE.getCommitIdAbbrev())) };
 
     static final String REF = "ref";
@@ -90,6 +94,7 @@ class JitStaticClientImpl implements JitStaticClient {
     protected final HttpHost target;
     private final URI keyUserURL;
     private final URI keyAdminURL;
+    private final URI keyGitUserURL;
 
     JitStaticClientImpl(final String host, final int port, final String scheme, final String appContext, final String user, final String password,
             final CacheConfig cacheConfig, final RequestConfig requestConfig, final HttpClientBuilder httpClientBuilder, final File cacheDir)
@@ -143,6 +148,8 @@ class JitStaticClientImpl implements JitStaticClient {
                 .resolve(JITSTATIC_KEYUSER_ENDPOINT);
         this.keyAdminURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_USERS_ENDPOINT)
                 .resolve(JITSTATIC_KEYADMIN_ENDPOINT);
+        this.keyGitUserURL = new URIBuilder().setHost(host).setScheme(scheme).setPort(port).build().resolve(appContext).resolve(JITSTATIC_USERS_ENDPOINT)
+                .resolve(JITSTATIC_GITUSER_ENDPOINT);
     }
 
     @Deprecated
@@ -387,6 +394,32 @@ class JitStaticClientImpl implements JitStaticClient {
     @Override
     public void deleteAdminUser(String user, String ref) throws URISyntaxException, IOException {
         deleteUser(user, ref, keyAdminURL);
+    }
+
+    @Override
+    public <T> T getGitUser(String user, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, IOException {
+        return getGitUser(user, null, entityFactory);
+    }
+
+    @Override
+    public <T> T getGitUser(String user, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
+            throws URISyntaxException, IOException {
+        return getKey(user, null, currentVersion, keyGitUserURL, entityFactory);
+    }
+
+    @Override
+    public String addGitUser(String user, UserData userData) throws URISyntaxException, IOException {
+        return addKey(user, null, keyGitUserURL, new UserDataEntity(userData));
+    }
+
+    @Override
+    public String modifyGitUser(String user, UserData userData, String currentVersion) throws URISyntaxException, IOException {
+        return modifyKey(user, null, currentVersion, keyGitUserURL, new UserDataEntity(userData));
+    }
+
+    @Override
+    public void deleteGitUser(String user) throws URISyntaxException, IOException {
+        deleteUser(user, null, keyGitUserURL);
     }
 
     private String modifyKey(String key, String ref, String version, URI realm, HttpEntity entity)
