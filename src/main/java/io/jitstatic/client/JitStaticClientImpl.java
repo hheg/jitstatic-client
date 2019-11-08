@@ -475,7 +475,7 @@ class JitStaticClientImpl implements JitStaticClient {
         final HttpGet getRequest = new HttpGet(url);
         getRequest.setHeaders(HEADERS);
         if (currentVersion != null) {
-            getRequest.addHeader(HttpHeaders.IF_MATCH, APIHelper.escapeVersion(currentVersion));
+            getRequest.addHeader(HttpHeaders.IF_NONE_MATCH, APIHelper.escapeVersion(currentVersion));
         }
         final HttpClientContext context = getHostContext(target, credentialsProvider);
         try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
