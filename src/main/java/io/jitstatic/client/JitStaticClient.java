@@ -9,9 +9,9 @@ package io.jitstatic.client;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,6 @@ package io.jitstatic.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.function.Function;
 
 public interface JitStaticClient extends AutoCloseable {
@@ -66,8 +65,6 @@ public interface JitStaticClient extends AutoCloseable {
 
     <T> T listAll(String key, String ref, boolean recursive, boolean light, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
 
-    <T> T search(List<BulkSearch> search, Function<InputStream, T> entityFactory) throws URISyntaxException, IOException;
-
     void delete(CommitData commitData) throws URISyntaxException, APIException, IOException;
 
     <T> T getUser(String user, String ref, String currentVersion, TriFunction<InputStream, String, String, T> entityFactory)
@@ -88,6 +85,7 @@ public interface JitStaticClient extends AutoCloseable {
 
     void deleteAdminUser(String user, String ref) throws URISyntaxException, IOException;
 
+    @Override
     void close();
 
     <T> T getGitUser(String gituserfull, TriFunction<InputStream, String, String, T> entityFactory) throws URISyntaxException, IOException;

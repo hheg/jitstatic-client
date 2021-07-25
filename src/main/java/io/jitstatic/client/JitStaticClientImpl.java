@@ -9,9 +9,9 @@ package io.jitstatic.client;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -258,10 +257,12 @@ class JitStaticClientImpl implements JitStaticClient {
         return getKey(key, ref, currentVersion, storageURL, entityFactory);
     }
 
+    @Override
     public <T> T listAll(final String key, final Function<InputStream, T> entityFactory) throws URISyntaxException, IOException {
         return listAll(key, null, entityFactory);
     }
 
+    @Override
     public <T> T listAll(final String key, final String ref, final Function<InputStream, T> entityFactory) throws URISyntaxException, IOException {
         return listAll(key, ref, false, entityFactory);
     }
@@ -283,6 +284,7 @@ class JitStaticClientImpl implements JitStaticClient {
         return listAll(key, ref, recursive, false, entityFactory);
     }
 
+    @Override
     public <T> T listAll(final String key, final String ref, final boolean recursive, final boolean light, final Function<InputStream, T> entityFactory)
             throws URISyntaxException, IOException {
         Objects.requireNonNull(key, KEY_CANNOT_BE_NULL);
@@ -305,22 +307,6 @@ class JitStaticClientImpl implements JitStaticClient {
         try (final CloseableHttpResponse httpResponse = client.execute(getRequest, context)) {
             final StatusLine statusLine = httpResponse.getStatusLine();
             APIHelper.checkGETresponse(url, getRequest, statusLine, httpResponse.getEntity());
-            try (final InputStream content = httpResponse.getEntity().getContent()) {
-                return entityFactory.apply(content);
-            }
-        }
-    }
-
-    @Override
-    public <T> T search(final List<BulkSearch> search, final Function<InputStream, T> entityFactory) throws URISyntaxException, IOException {
-        final URI url = bulkURL.resolve("fetch");
-        final HttpPost postRequest = new HttpPost(url);
-        postRequest.setHeaders(HEADERS);
-        postRequest.setEntity(new BulkSearchEntity(search));
-        final HttpClientContext context = getHostContext(target, credentialsProvider);
-        try (final CloseableHttpResponse httpResponse = client.execute(postRequest, context)) {
-            final StatusLine statusLine = httpResponse.getStatusLine();
-            APIHelper.checkPOSTresponse(url, postRequest, statusLine, httpResponse.getEntity());
             try (final InputStream content = httpResponse.getEntity().getContent()) {
                 return entityFactory.apply(content);
             }
